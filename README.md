@@ -20,6 +20,28 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Authentication Setup
+
+This project includes Supabase authentication with admin approval workflow:
+
+### Environment Variables
+Create a `.env.local` file with:
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+```
+
+### Database Setup
+1. Run the SQL commands in `supabase-setup.sql` in your Supabase SQL editor
+2. Enable Google OAuth in Supabase Dashboard > Authentication > Providers
+
+### Features
+- Email/password authentication
+- Google OAuth login
+- Admin approval required for new registrations
+- Email notifications on approval (requires email service integration)
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
