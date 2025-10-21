@@ -102,104 +102,136 @@ export default function AdminPage() {
   if (loading) return <div className="p-8">Loading...</div>
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-        <button
-          onClick={handleSignOut}
-          className="bg-red-500 text-white px-4 py-2 rounded"
-        >
-          Sign Out
-        </button>
-      </div>
-      
-      <div className="mb-6 space-x-2">
-        <button
-          onClick={syncUsers}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Sync Existing Users
-        </button>
-        <button
-          onClick={async () => {
-            const response = await fetch('/api/fix-users', { method: 'POST' })
-            if (response.ok) {
-              alert('Fixed unconfirmed emails')
-            }
-          }}
-          className="bg-yellow-500 text-white px-4 py-2 rounded"
-        >
-          Fix Email Confirmations
-        </button>
-      </div>
-
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">Administrators</h2>
-        <div className="space-y-4">
-          {admins.length === 0 ? (
-            <p className="text-gray-500">No administrators found.</p>
-          ) : (
-            admins.map(admin => (
-              <div key={admin.id} className="border p-4 rounded flex justify-between items-center bg-blue-50">
-                <div>
-                  <p className="font-medium">{admin.email}</p>
-                  <p className="text-sm text-gray-500">Role: Admin</p>
-                </div>
-                <button
-                  onClick={() => handleRoleChange(admin.id, 'user')}
-                  className="bg-orange-500 text-white px-4 py-2 rounded"
-                >
-                  Revoke Admin
-                </button>
-              </div>
-            ))
-          )}
+    <div className="min-h-screen bg-gray-900 text-white">
+      <nav className="bg-gray-800 border-b border-gray-700 px-6 py-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <img src="/logo.png" alt="Logo" className="h-8 w-8" />
+            <h1 className="text-xl font-bold">Admin Dashboard</h1>
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Sign Out
+          </button>
         </div>
-      </div>
+      </nav>
+      
+      <div className="p-6">
+        <div className="mb-6 flex flex-wrap gap-3">
+          <button
+            onClick={syncUsers}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Sync Existing Users
+          </button>
+          <button
+            onClick={async () => {
+              const response = await fetch('/api/fix-users', { method: 'POST' })
+              if (response.ok) {
+                alert('Fixed unconfirmed emails')
+              }
+            }}
+            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Fix Email Confirmations
+          </button>
+        </div>
 
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Users</h2>
-        <div className="space-y-4">
-          {users.length === 0 ? (
-            <p className="text-gray-500">No users found. Click "Sync Existing Users" to load existing accounts.</p>
-          ) : (
-            users.map(user => (
-              <div key={user.id} className="border p-4 rounded flex justify-between items-center">
-                <div>
-                  <p className="font-medium">{user.email}</p>
-                  <p className="text-sm text-gray-500">
-                    Status: {user.approved ? 'Approved' : 'Pending'}
-                  </p>
-                </div>
-                <div className="space-x-2">
-                  {!user.approved && (
-                    <button
-                      onClick={() => handleApproval(user.id, true)}
-                      className="bg-green-500 text-white px-4 py-2 rounded"
-                    >
-                      Approve
-                    </button>
-                  )}
-                  {user.approved && (
-                    <button
-                      onClick={() => handleApproval(user.id, false)}
-                      className="bg-red-500 text-white px-4 py-2 rounded"
-                    >
-                      Revoke Access
-                    </button>
-                  )}
-                  {user.approved && (
-                    <button
-                      onClick={() => handleRoleChange(user.id, 'admin')}
-                      className="bg-purple-500 text-white px-4 py-2 rounded"
-                    >
-                      Make Admin
-                    </button>
-                  )}
-                </div>
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4 flex items-center">
+            <div className="bg-purple-600 p-2 rounded-lg mr-3">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
+              </svg>
+            </div>
+            Administrators
+          </h2>
+          <div className="space-y-3">
+            {admins.length === 0 ? (
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-gray-400">
+                No administrators found.
               </div>
-            ))
-          )}
+            ) : (
+              admins.map(admin => (
+                <div key={admin.id} className="bg-gray-800 border border-gray-700 p-4 rounded-lg flex justify-between items-center">
+                  <div>
+                    <p className="font-medium text-white">{admin.email}</p>
+                    <p className="text-sm text-purple-400">Administrator</p>
+                  </div>
+                  <button
+                    onClick={() => handleRoleChange(admin.id, 'user')}
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Revoke Admin
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-2xl font-bold mb-4 flex items-center">
+            <div className="bg-blue-600 p-2 rounded-lg mr-3">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+              </svg>
+            </div>
+            Users
+          </h2>
+          <div className="space-y-3">
+            {users.length === 0 ? (
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-gray-400">
+                No users found. Click "Sync Existing Users" to load existing accounts.
+              </div>
+            ) : (
+              users.map(user => (
+                <div key={user.id} className="bg-gray-800 border border-gray-700 p-4 rounded-lg flex justify-between items-center">
+                  <div>
+                    <p className="font-medium text-white">{user.email}</p>
+                    <div className="flex items-center mt-1">
+                      <div className={`w-2 h-2 rounded-full mr-2 ${
+                        user.approved ? 'bg-green-500' : 'bg-yellow-500'
+                      }`}></div>
+                      <p className={`text-sm ${
+                        user.approved ? 'text-green-400' : 'text-yellow-400'
+                      }`}>
+                        {user.approved ? 'Approved' : 'Pending Approval'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    {!user.approved && (
+                      <button
+                        onClick={() => handleApproval(user.id, true)}
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+                      >
+                        Approve
+                      </button>
+                    )}
+                    {user.approved && (
+                      <button
+                        onClick={() => handleApproval(user.id, false)}
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+                      >
+                        Revoke Access
+                      </button>
+                    )}
+                    {user.approved && (
+                      <button
+                        onClick={() => handleRoleChange(user.id, 'admin')}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+                      >
+                        Make Admin
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>

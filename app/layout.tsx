@@ -10,7 +10,7 @@ export default function RootLayout({ children }: Props) {
     <html lang="en">
       <head />
       
-      <body className="flex flex-col font-roboto">
+      <body className="flex flex-col font-roboto bg-gray-900">
           {children}
       </body>
     </html>
