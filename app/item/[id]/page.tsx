@@ -1,19 +1,61 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 
 export default function ItemPage() {
   const [item, setItem] = useState<any>(null)
   const [sellerEmail, setSellerEmail] = useState('')
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [showChat, setShowChat] = useState(false)
+  const [chat, setChat] = useState<any>(null)
+  const [messages, setMessages] = useState<any[]>([])
+  const [newMessage, setNewMessage] = useState('')
+  const [user, setUser] = useState<any>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const params = useParams()
 
   useEffect(() => {
-    fetchItem()
+    setLoading(true)
+    checkUser()
   }, [])
+
+  useEffect(() => {
+    if (chat) {
+      fetchMessages()
+      scrollToBottom()
+      
+      const channel = supabase
+        .channel(`chat-${chat.id}`)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `chat_id=eq.${chat.id}`
+        }, (payload) => {
+          setMessages(prev => {
+            if (prev.some(msg => msg.id === payload.new.id)) return prev
+            setTimeout(scrollToBottom, 100)
+            return [...prev, payload.new]
+          })
+        })
+        .subscribe()
+
+      return () => {
+        supabase.removeChannel(channel)
+      }
+    }
+  }, [chat])
+
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      setUser(user)
+      fetchItem()
+    }
+  }
 
   const fetchItem = async () => {
     const { data: itemData } = await supabase
@@ -36,12 +78,10 @@ export default function ItemPage() {
     setLoading(false)
   }
 
-  if (loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center"><div className="text-white">Loading...</div></div>
-
-  if (!item) return <div className="min-h-screen bg-slate-950 flex items-center justify-center"><div className="text-white">Item not found</div></div>
+  if (loading || !item) return null
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-slate-950" suppressHydrationWarning>
       <nav className="bg-gradient-to-r from-green-900 to-emerald-900 border-b border-green-700 px-6 py-4 shadow-lg">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-3">
@@ -100,13 +140,120 @@ export default function ItemPage() {
                 </div>
               )}
 
-              <button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-all font-medium">
-                Add to Cart
+              <button onClick={async () => {
+                if (!user) return
+                
+                const { data: existingChat } = await supabase
+                  .from('chats')
+                  .select('*, items(name)')
+                  .eq('item_id', item.id)
+                  .eq('buyer_id', user.id)
+                  .single()
+                
+                if (existingChat) {
+                  setChat(existingChat)
+                } else {
+                  const { data: newChat } = await supabase
+                    .from('chats')
+                    .insert({
+                      item_id: item.id,
+                      buyer_id: user.id,
+                      seller_id: item.seller_id
+                    })
+                    .select('*, items(name)')
+                    .single()
+                  
+                  if (newChat) setChat(newChat)
+                }
+                setShowChat(true)
+              }} className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-all font-medium">
+                Message Seller
               </button>
             </div>
           </div>
         </div>
+
+        {/* Floating Chat */}
+        {showChat && chat && (
+          <div className="fixed bottom-4 right-4 w-80 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50">
+            <div className="bg-gradient-to-r from-green-900 to-emerald-900 p-4 rounded-t-xl flex justify-between items-center">
+              <div>
+                <p className="text-white font-bold text-sm">{chat.items.name}</p>
+                <p className="text-xs text-green-200">{sellerEmail?.split('@')[0]}</p>
+              </div>
+              <button onClick={() => setShowChat(false)} className="text-white hover:text-gray-300">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="flex flex-col h-96">
+              <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+                {messages.map(msg => (
+                  <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${msg.sender_id === user?.id ? 'bg-green-600 text-white' : 'bg-slate-800 text-white'}`}>
+                      {msg.message}
+                    </div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+              
+              <form onSubmit={sendMessage} className="p-3 border-t border-slate-700">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="Type a message..."
+                    className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                  />
+                  <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
+                    Send
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
+
+  function scrollToBottom() {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  async function fetchMessages() {
+    const { data } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('chat_id', chat.id)
+      .order('created_at', { ascending: true })
+
+    if (data) {
+      setMessages(data)
+      setTimeout(scrollToBottom, 100)
+    }
+  }
+
+  async function sendMessage(e: React.FormEvent) {
+    e.preventDefault()
+    if (!newMessage.trim() || !user) return
+
+    const messageText = newMessage.trim()
+    setNewMessage('')
+
+    const { data } = await supabase.from('messages').insert({
+      chat_id: chat.id,
+      sender_id: user.id,
+      message: messageText
+    }).select().single()
+
+    if (data) {
+      setMessages(prev => [...prev, data])
+      setTimeout(scrollToBottom, 100)
+    }
+  }
 }

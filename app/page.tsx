@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
@@ -10,6 +10,12 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [chats, setChats] = useState<any[]>([])
+  const [selectedChat, setSelectedChat] = useState<any>(null)
+  const [messages, setMessages] = useState<any[]>([])
+  const [newMessage, setNewMessage] = useState('')
+  const [showChats, setShowChats] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -61,10 +67,98 @@ export default function Home() {
       }
     }
 
+    const fetchChats = async () => {
+      if (!user) return
+      const { data } = await supabase
+        .from('chats')
+        .select('*, items(name)')
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+        .order('created_at', { ascending: false })
+      
+      if (data) {
+        const chatsWithUsers = await Promise.all(
+          data.map(async (chat) => {
+            const otherUserId = chat.buyer_id === user.id ? chat.seller_id : chat.buyer_id
+            const { data: profile } = await supabase
+              .from('user_profiles')
+              .select('email')
+              .eq('id', otherUserId)
+              .single()
+            return { ...chat, other_user: profile }
+          })
+        )
+        setChats(chatsWithUsers)
+      }
+    }
+
     if (profile) {
       fetchItems()
+      fetchChats()
     }
-  }, [profile])
+  }, [profile, user])
+
+  useEffect(() => {
+    if (selectedChat) {
+      fetchMessages()
+      scrollToBottom()
+      
+      const channel = supabase
+        .channel(`chat-${selectedChat.id}`)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `chat_id=eq.${selectedChat.id}`
+        }, (payload) => {
+          setMessages(prev => {
+            if (prev.some(msg => msg.id === payload.new.id)) return prev
+            setTimeout(scrollToBottom, 100)
+            return [...prev, payload.new]
+          })
+        })
+        .subscribe()
+
+      return () => {
+        supabase.removeChannel(channel)
+      }
+    }
+  }, [selectedChat])
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  const fetchMessages = async () => {
+    const { data } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('chat_id', selectedChat.id)
+      .order('created_at', { ascending: true })
+
+    if (data) {
+      setMessages(data)
+      setTimeout(scrollToBottom, 100)
+    }
+  }
+
+  const sendMessage = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newMessage.trim() || !user) return
+
+    const messageText = newMessage.trim()
+    setNewMessage('')
+
+    const { data } = await supabase.from('messages').insert({
+      chat_id: selectedChat.id,
+      sender_id: user.id,
+      message: messageText
+    }).select().single()
+
+    if (data) {
+      setMessages(prev => [...prev, data])
+      setTimeout(scrollToBottom, 100)
+    }
+  }
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -139,13 +233,13 @@ export default function Home() {
             </div>
           </div>
           <div className="flex gap-3">
-            <button className="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white px-4 py-3 rounded-lg transition-all flex items-center gap-2">
+            <button onClick={() => setShowChats(!showChats)} className="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white px-4 py-3 rounded-lg transition-all flex items-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
-              Cart
+              Messages
             </button>
-            <button onClick={() => router.push('/sell')} className="bg-green-600 hover:bg-green-700 border border-green-700 text-white px-4 py-3 rounded-lg transition-all flex items-center gap-2">
+            <button onClick={() => router.push('/sell')} className="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg transition-all flex items-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
@@ -237,6 +331,75 @@ export default function Home() {
             </div>
           )}
         </div>
+
+        {/* Floating Chat */}
+        {showChats && (
+          <div className="fixed bottom-4 right-4 w-80 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50">
+            <div className="bg-gradient-to-r from-green-900 to-emerald-900 p-4 rounded-t-xl flex justify-between items-center">
+              <h3 className="text-white font-bold">Messages</h3>
+              <button onClick={() => { setShowChats(false); setSelectedChat(null) }} className="text-white hover:text-gray-300">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {!selectedChat ? (
+              <div className="h-96 overflow-y-auto">
+                {chats.length === 0 ? (
+                  <div className="p-4 text-center text-gray-400">No messages</div>
+                ) : (
+                  chats.map(chat => (
+                    <div key={chat.id} onClick={() => setSelectedChat(chat)} className="p-4 hover:bg-slate-800 cursor-pointer border-b border-slate-700">
+                      <p className="text-white font-medium">{chat.items.name}</p>
+                      <p className="text-sm text-gray-400">{chat.other_user?.email?.split('@')[0]}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col h-96">
+                <div className="p-3 border-b border-slate-700 flex items-center gap-2">
+                  <button onClick={() => setSelectedChat(null)} className="text-white">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <div>
+                    <p className="text-white text-sm font-medium">{selectedChat.items.name}</p>
+                    <p className="text-xs text-gray-400">{selectedChat.other_user?.email?.split('@')[0]}</p>
+                  </div>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+                  {messages.map(msg => (
+                    <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${msg.sender_id === user?.id ? 'bg-green-600 text-white' : 'bg-slate-800 text-white'}`}>
+                        {msg.message}
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
+                
+                <form onSubmit={sendMessage} className="p-3 border-t border-slate-700">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder="Type a message..."
+                      className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                    />
+                    <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
+                      Send
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

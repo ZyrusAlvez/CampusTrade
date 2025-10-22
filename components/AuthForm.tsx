@@ -16,7 +16,7 @@ export default function AuthForm() {
     e.preventDefault()
     setLoading(true)
     setMessage('')
-
+    
     try {
       if (isSignUp) {
         // Use admin client to create user without email confirmation

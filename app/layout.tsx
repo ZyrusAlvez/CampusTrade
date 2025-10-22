@@ -7,10 +7,10 @@ type Props = {
 
 export default function RootLayout({ children }: Props) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head />
       
-      <body className="flex flex-col font-roboto bg-gray-900">
+      <body className="flex flex-col font-roboto bg-gray-900" suppressHydrationWarning>
           {children}
       </body>
     </html>

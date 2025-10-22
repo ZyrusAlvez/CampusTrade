@@ -14,11 +14,17 @@ export default function SellPage() {
   const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [myItems, setMyItems] = useState<any[]>([])
+  const [showForm, setShowForm] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
     checkUser()
   }, [])
+
+  useEffect(() => {
+    if (user) fetchMyItems()
+  }, [user])
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -27,6 +33,38 @@ export default function SellPage() {
       return
     }
     setUser(user)
+  }
+
+  const fetchMyItems = async () => {
+    const { data } = await supabase
+      .from('items')
+      .select('*')
+      .eq('seller_id', user.id)
+      .order('created_at', { ascending: false })
+    
+    if (data) {
+      const itemsWithBuyers = await Promise.all(
+        data.map(async (item) => {
+          const { data: orders } = await supabase
+            .from('orders')
+            .select('*')
+            .eq('item_id', item.id)
+          
+          const ordersWithProfiles = orders ? await Promise.all(
+            orders.map(async (order) => {
+              const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('email')
+                .eq('id', order.buyer_id)
+                .single()
+              return { ...order, user_profiles: profile }
+            })
+          ) : []
+          return { ...item, interested_buyers: ordersWithProfiles }
+        })
+      )
+      setMyItems(itemsWithBuyers)
+    }
   }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,7 +120,13 @@ export default function SellPage() {
       if (error) throw error
 
       setMessage('Item listed successfully!')
-      setTimeout(() => router.push('/'), 1500)
+      setShowForm(false)
+      fetchMyItems()
+      setName('')
+      setPrice('')
+      setCategory('')
+      setDescription('')
+      setImages([])
     } catch (error: any) {
       setMessage(error.message)
     } finally {
@@ -110,10 +154,19 @@ export default function SellPage() {
         </div>
       </nav>
 
-      <div className="max-w-3xl mx-auto p-6">
-        <h2 className="text-3xl font-bold text-white mb-6">List an Item for Sale</h2>
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-bold text-white">My Listings</h2>
+          <button onClick={() => setShowForm(!showForm)} className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-all flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            {showForm ? 'Cancel' : 'List New Item'}
+          </button>
+        </div>
 
-        <form onSubmit={handleSubmit} className="bg-slate-900 border border-slate-700 rounded-xl p-6 space-y-4">
+        {showForm && (
+          <form onSubmit={handleSubmit} className="bg-slate-900 border border-slate-700 rounded-xl p-6 space-y-4 mb-6">
           <div>
             <label className="block text-white mb-2">Item Name</label>
             <input
@@ -208,6 +261,39 @@ export default function SellPage() {
             </div>
           )}
         </form>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {myItems.length === 0 ? (
+            <div className="col-span-full bg-slate-900 border border-slate-700 rounded-xl p-8 text-center">
+              <p className="text-gray-400">You haven't listed any items yet.</p>
+            </div>
+          ) : (
+            myItems.map(item => (
+              <div key={item.id} className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden">
+                <div className="h-48 bg-slate-800 flex items-center justify-center">
+                  {item.images && item.images.length > 0 ? (
+                    <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <svg className="w-16 h-16 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                </div>
+                <div className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-lg font-bold text-white">{item.name}</h3>
+                    <span className="text-green-400 font-bold">${item.price}</span>
+                  </div>
+                  <p className="text-sm text-gray-400 mb-3">{item.category}</p>
+                  <button onClick={() => router.push('/messages')} className="w-full bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-lg transition-all text-sm">
+                    View Messages
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   )
