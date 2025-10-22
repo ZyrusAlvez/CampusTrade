@@ -6,13 +6,15 @@ import { useRouter, useParams } from 'next/navigation'
 
 export default function ItemPage() {
   const [item, setItem] = useState<any>(null)
-  const [sellerEmail, setSellerEmail] = useState('')
+  const [sellerProfile, setSellerProfile] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [showChat, setShowChat] = useState(false)
   const [chat, setChat] = useState<any>(null)
   const [messages, setMessages] = useState<any[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [user, setUser] = useState<any>(null)
+  const [selectedImage, setSelectedImage] = useState(0)
+  const [showLightbox, setShowLightbox] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const params = useParams()
@@ -69,21 +71,52 @@ export default function ItemPage() {
       
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('email')
+        .select('first_name, last_name, profile_picture')
         .eq('id', itemData.seller_id)
         .single()
       
-      if (profile) setSellerEmail(profile.email)
+      if (profile) setSellerProfile(profile)
     }
     setLoading(false)
   }
 
-  if (loading || !item) return null
+  if (loading || !item) return (
+    <div className="min-h-screen bg-slate-950">
+      <div className="max-w-5xl mx-auto p-6 animate-pulse">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="h-10 w-10 bg-slate-800 rounded"></div>
+            <div>
+              <div className="h-6 w-32 bg-slate-800 rounded mb-1"></div>
+              <div className="h-3 w-24 bg-slate-800 rounded"></div>
+            </div>
+          </div>
+          <div className="h-10 w-32 bg-slate-800 rounded-lg"></div>
+        </div>
+        <div className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+            <div>
+              <div className="w-full h-96 bg-slate-800 rounded-lg"></div>
+            </div>
+            <div>
+              <div className="h-10 w-3/4 bg-slate-800 rounded mb-4"></div>
+              <div className="h-12 w-32 bg-slate-800 rounded mb-4"></div>
+              <div className="h-6 w-24 bg-slate-800 rounded mb-2"></div>
+              <div className="h-6 w-32 bg-slate-800 rounded mb-6"></div>
+              <div className="h-6 w-24 bg-slate-800 rounded mb-2"></div>
+              <div className="h-6 w-40 bg-slate-800 rounded mb-6"></div>
+              <div className="h-12 w-full bg-slate-800 rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
-    <div className="min-h-screen bg-slate-950" suppressHydrationWarning>
-      <nav className="bg-gradient-to-r from-green-900 to-emerald-900 border-b border-green-700 px-6 py-4 shadow-lg">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+    <div className="min-h-screen bg-slate-950">
+      <div className="max-w-5xl mx-auto p-6">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
             <img src="/logo.png" alt="Campus Trade Logo" className="h-10 w-10" />
             <div>
@@ -95,14 +128,16 @@ export default function ItemPage() {
             Back to Home
           </button>
         </div>
-      </nav>
-
-      <div className="max-w-5xl mx-auto p-6">
         <div className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
             <div>
               {item.images && item.images.length > 0 ? (
-                <img src={item.images[0]} alt={item.name} className="w-full h-96 object-cover rounded-lg" />
+                <img 
+                  src={item.images[selectedImage]} 
+                  alt={item.name} 
+                  className="w-full h-96 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
+                  onClick={() => setShowLightbox(true)}
+                />
               ) : (
                 <div className="w-full h-96 bg-slate-800 rounded-lg flex items-center justify-center">
                   <svg className="w-24 h-24 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,8 +147,16 @@ export default function ItemPage() {
               )}
               {item.images && item.images.length > 1 && (
                 <div className="grid grid-cols-4 gap-2 mt-4">
-                  {item.images.slice(1).map((img: string, index: number) => (
-                    <img key={index} src={img} alt={`${item.name} ${index + 2}`} className="w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-75" />
+                  {item.images.map((img: string, index: number) => (
+                    <img 
+                      key={index} 
+                      src={img} 
+                      alt={`${item.name} ${index + 1}`} 
+                      className={`w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-75 transition-all ${
+                        selectedImage === index ? 'ring-2 ring-green-500' : ''
+                      }`}
+                      onClick={() => setSelectedImage(index)}
+                    />
                   ))}
                 </div>
               )}
@@ -130,7 +173,23 @@ export default function ItemPage() {
 
               <div className="mb-6">
                 <p className="text-sm text-gray-400 mb-2">Seller</p>
-                <p className="text-white">{sellerEmail?.split('@')[0] || 'Unknown'}</p>
+                <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => router.push(`/user/${item.seller_id}`)}>
+                  {sellerProfile?.profile_picture ? (
+                    <img src={sellerProfile.profile_picture} alt="Seller" className="w-10 h-10 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                  )}
+                  <p className="text-white">{sellerProfile ? `${sellerProfile.first_name} ${sellerProfile.last_name}` : 'Unknown'}</p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-sm text-gray-400 mb-2">Posted</p>
+                <p className="text-white">{new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
               </div>
 
               {item.description && (
@@ -140,46 +199,101 @@ export default function ItemPage() {
                 </div>
               )}
 
-              <button onClick={async () => {
-                if (!user) return
-                
-                const { data: existingChat } = await supabase
-                  .from('chats')
-                  .select('*, items(name)')
-                  .eq('item_id', item.id)
-                  .eq('buyer_id', user.id)
-                  .single()
-                
-                if (existingChat) {
-                  setChat(existingChat)
-                } else {
-                  const { data: newChat } = await supabase
+              {user?.id === item.seller_id ? (
+                <button className="w-full bg-slate-700 text-white py-3 rounded-lg font-medium cursor-not-allowed" disabled>
+                  Your Listing
+                </button>
+              ) : (
+                <button onClick={async () => {
+                  if (!user) return
+                  
+                  const { data: existingChat } = await supabase
                     .from('chats')
-                    .insert({
-                      item_id: item.id,
-                      buyer_id: user.id,
-                      seller_id: item.seller_id
-                    })
                     .select('*, items(name)')
+                    .eq('item_id', item.id)
+                    .eq('buyer_id', user.id)
                     .single()
                   
-                  if (newChat) setChat(newChat)
-                }
-                setShowChat(true)
-              }} className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-all font-medium">
-                Message Seller
-              </button>
+                  if (existingChat) {
+                    setChat(existingChat)
+                  } else {
+                    const { data: newChat } = await supabase
+                      .from('chats')
+                      .insert({
+                        item_id: item.id,
+                        buyer_id: user.id,
+                        seller_id: item.seller_id
+                      })
+                      .select('*, items(name)')
+                      .single()
+                    
+                    if (newChat) setChat(newChat)
+                  }
+                  setShowChat(true)
+                }} className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-all font-medium">
+                  Message Seller
+                </button>
+              )}
             </div>
           </div>
         </div>
+
+        {/* Image Lightbox */}
+        {showLightbox && item.images && (
+          <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4" onClick={() => setShowLightbox(false)}>
+            <button onClick={() => setShowLightbox(false)} className="absolute top-4 right-4 text-white hover:text-gray-300 z-10">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {item.images.length > 1 && (
+              <>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setSelectedImage((selectedImage - 1 + item.images.length) % item.images.length) }} 
+                  className="absolute left-4 text-white hover:text-gray-300 bg-black bg-opacity-50 rounded-full p-2"
+                >
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setSelectedImage((selectedImage + 1) % item.images.length) }} 
+                  className="absolute right-4 text-white hover:text-gray-300 bg-black bg-opacity-50 rounded-full p-2"
+                >
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </>
+            )}
+            
+            <div className="max-w-7xl max-h-full" onClick={(e) => e.stopPropagation()}>
+              <img src={item.images[selectedImage]} alt={item.name} className="max-w-full max-h-[90vh] object-contain" />
+              {item.images.length > 1 && (
+                <div className="flex justify-center gap-2 mt-4">
+                  {item.images.map((_: string, index: number) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedImage(index)}
+                      className={`w-3 h-3 rounded-full transition-all ${
+                        selectedImage === index ? 'bg-green-500' : 'bg-gray-500'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Floating Chat */}
         {showChat && chat && (
           <div className="fixed bottom-4 right-4 w-80 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50">
             <div className="bg-gradient-to-r from-green-900 to-emerald-900 p-4 rounded-t-xl flex justify-between items-center">
-              <div>
+              <div className="cursor-pointer" onClick={() => router.push(`/user/${item.seller_id}`)}>
                 <p className="text-white font-bold text-sm">{chat.items.name}</p>
-                <p className="text-xs text-green-200">{sellerEmail?.split('@')[0]}</p>
+                <p className="text-xs text-green-200">{sellerProfile ? `${sellerProfile.first_name} ${sellerProfile.last_name}` : 'Unknown'}</p>
               </div>
               <button onClick={() => setShowChat(false)} className="text-white hover:text-gray-300">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

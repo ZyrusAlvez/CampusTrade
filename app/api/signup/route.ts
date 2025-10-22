@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json()
+    const { email, password, firstName, lastName } = await request.json()
     const supabaseAdmin = getSupabaseAdmin()
 
     // Create user with admin client (bypasses email confirmation)
@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       email,
       password,
       email_confirm: true, // Auto-confirm email
-      user_metadata: { approved: false }
+      user_metadata: { approved: false, first_name: firstName, last_name: lastName }
     })
 
     if (error) throw error

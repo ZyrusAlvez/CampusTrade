@@ -2,8 +2,12 @@
 CREATE TABLE user_profiles (
   id UUID REFERENCES auth.users(id) PRIMARY KEY,
   email TEXT NOT NULL,
+  first_name TEXT,
+  last_name TEXT,
+  profile_picture TEXT,
   approved BOOLEAN DEFAULT FALSE,
   role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -12,8 +16,15 @@ CREATE TABLE user_profiles (
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.user_profiles (id, email, approved, role)
-  VALUES (NEW.id, NEW.email, FALSE, 'user');
+  INSERT INTO public.user_profiles (id, email, first_name, last_name, approved, role)
+  VALUES (
+    NEW.id, 
+    NEW.email, 
+    NEW.raw_user_meta_data->>'first_name',
+    NEW.raw_user_meta_data->>'last_name',
+    FALSE, 
+    'user'
+  );
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -29,6 +40,10 @@ ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 -- Policy for users to read their own profile
 CREATE POLICY "Users can view own profile" ON user_profiles
   FOR SELECT USING (auth.uid() = id);
+
+-- Policy for users to update their own profile
+CREATE POLICY "Users can update own profile" ON user_profiles
+  FOR UPDATE USING (auth.uid() = id);
 
 -- Policy for admins to view all profiles (you'll need to set up admin role)
 CREATE POLICY "Admins can view all profiles" ON user_profiles
@@ -91,16 +106,86 @@ CREATE POLICY "Users can update own items" ON items
 CREATE POLICY "Users can delete own items" ON items
   FOR DELETE USING (auth.uid() = seller_id);
 
--- Create storage bucket for item images
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('item-images', 'item-images', true);
+-- Create orders table
+CREATE TABLE orders (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  item_id UUID REFERENCES items(id) ON DELETE CASCADE NOT NULL,
+  buyer_id UUID REFERENCES auth.users(id) NOT NULL,
+  seller_id UUID REFERENCES auth.users(id) NOT NULL,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'cancelled')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
--- Storage policies
-CREATE POLICY "Anyone can view item images" ON storage.objects
-  FOR SELECT USING (bucket_id = 'item-images');
+-- Enable RLS for orders
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can upload item images" ON storage.objects
-  FOR INSERT WITH CHECK (bucket_id = 'item-images' AND auth.uid()::text = (storage.foldername(name))[1]);
+-- Policy for users to view their own orders
+CREATE POLICY "Users can view own orders" ON orders
+  FOR SELECT USING (auth.uid() = buyer_id OR auth.uid() = seller_id);
 
-CREATE POLICY "Users can delete own item images" ON storage.objects
-  FOR DELETE USING (bucket_id = 'item-images' AND auth.uid()::text = (storage.foldername(name))[1]);
+-- Policy for users to create orders
+CREATE POLICY "Users can create orders" ON orders
+  FOR INSERT WITH CHECK (auth.uid() = buyer_id);
+
+-- Create chats table
+CREATE TABLE chats (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  item_id UUID REFERENCES items(id) ON DELETE CASCADE NOT NULL,
+  buyer_id UUID REFERENCES auth.users(id) NOT NULL,
+  seller_id UUID REFERENCES auth.users(id) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS for chats
+ALTER TABLE chats ENABLE ROW LEVEL SECURITY;
+
+-- Policy for users to view their own chats
+CREATE POLICY "Users can view own chats" ON chats
+  FOR SELECT USING (auth.uid() = buyer_id OR auth.uid() = seller_id);
+
+-- Policy for users to create chats
+CREATE POLICY "Users can create chats" ON chats
+  FOR INSERT WITH CHECK (auth.uid() = buyer_id);
+
+-- Create messages table
+CREATE TABLE messages (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  chat_id UUID REFERENCES chats(id) ON DELETE CASCADE NOT NULL,
+  sender_id UUID REFERENCES auth.users(id) NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS for messages
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+
+-- Policy for users to view messages in their chats
+CREATE POLICY "Users can view messages in their chats" ON messages
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM chats
+      WHERE chats.id = messages.chat_id
+      AND (chats.buyer_id = auth.uid() OR chats.seller_id = auth.uid())
+    )
+  );
+
+-- Policy for users to send messages in their chats
+CREATE POLICY "Users can send messages in their chats" ON messages
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM chats
+      WHERE chats.id = messages.chat_id
+      AND (chats.buyer_id = auth.uid() OR chats.seller_id = auth.uid())
+    )
+    AND auth.uid() = sender_id
+  );
+
+-- Create function to update last_seen
+CREATE OR REPLACE FUNCTION update_last_seen()
+RETURNS void AS $$
+BEGIN
+  UPDATE user_profiles
+  SET last_seen = NOW()
+  WHERE id = auth.uid();
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

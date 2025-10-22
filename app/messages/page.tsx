@@ -13,6 +13,8 @@ export default function MessagesPage() {
     checkUser()
   }, [])
 
+  const [loading, setLoading] = useState(true)
+
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -20,7 +22,8 @@ export default function MessagesPage() {
       return
     }
     setUser(user)
-    fetchChats(user.id)
+    await fetchChats(user.id)
+    setLoading(false)
   }
 
   const fetchChats = async (userId: string) => {
@@ -33,10 +36,39 @@ export default function MessagesPage() {
     if (data) setChats(data)
   }
 
+  if (loading) return (
+    <div className="min-h-screen bg-slate-950">
+      <div className="max-w-5xl mx-auto p-6 animate-pulse">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="h-10 w-10 bg-slate-800 rounded"></div>
+            <div>
+              <div className="h-6 w-32 bg-slate-800 rounded mb-1"></div>
+              <div className="h-3 w-24 bg-slate-800 rounded"></div>
+            </div>
+          </div>
+          <div className="h-10 w-32 bg-slate-800 rounded-lg"></div>
+        </div>
+        <div className="h-8 w-32 bg-slate-800 rounded mb-6"></div>
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="bg-slate-900 border border-slate-700 rounded-xl p-4 flex gap-4">
+              <div className="w-16 h-16 bg-slate-800 rounded-lg"></div>
+              <div className="flex-1">
+                <div className="h-5 w-48 bg-slate-800 rounded mb-2"></div>
+                <div className="h-4 w-32 bg-slate-800 rounded"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <div className="min-h-screen bg-slate-950">
-      <nav className="bg-gradient-to-r from-green-900 to-emerald-900 border-b border-green-700 px-6 py-4 shadow-lg">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+      <div className="max-w-5xl mx-auto p-6">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
             <img src="/logo.png" alt="Campus Trade Logo" className="h-10 w-10" />
             <div>
@@ -48,9 +80,6 @@ export default function MessagesPage() {
             Back to Home
           </button>
         </div>
-      </nav>
-
-      <div className="max-w-5xl mx-auto p-6">
         <h2 className="text-3xl font-bold text-white mb-6">Messages</h2>
 
         {chats.length === 0 ? (

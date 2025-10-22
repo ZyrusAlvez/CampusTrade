@@ -3,27 +3,34 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 export default function AuthForm() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
   const router = useRouter()
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setMessage('')
     
     try {
       if (isSignUp) {
+        if (password !== confirmPassword) {
+          toast.error('Passwords do not match')
+          setLoading(false)
+          return
+        }
         // Use admin client to create user without email confirmation
         const response = await fetch('/api/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ email, password, firstName, lastName })
         })
         
         const result = await response.json()
@@ -50,7 +57,7 @@ export default function AuthForm() {
         setTimeout(() => router.push('/'), 0)
       }
     } catch (error: any) {
-      setMessage(error.message)
+      toast.error(error.message)
     } finally {
       setLoading(false)
     }
@@ -70,7 +77,7 @@ export default function AuthForm() {
       })
       if (error) throw error
     } catch (error: any) {
-      setMessage(error.message)
+      toast.error(error.message)
       setLoading(false)
     }
   }
@@ -82,6 +89,26 @@ export default function AuthForm() {
       </h2>
       
       <form onSubmit={handleAuth} className="space-y-4">
+        {isSignUp && (
+          <>
+            <input
+              type="text"
+              placeholder="First Name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none transition-all"
+              required
+            />
+            <input
+              type="text"
+              placeholder="Last Name"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none transition-all"
+              required
+            />
+          </>
+        )}
         <input
           type="email"
           placeholder="Email address"
@@ -98,6 +125,16 @@ export default function AuthForm() {
           className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none transition-all"
           required
         />
+        {isSignUp && (
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none transition-all"
+            required
+          />
+        )}
         <button
           type="submit"
           disabled={loading}
@@ -149,11 +186,6 @@ export default function AuthForm() {
         </button>
       </p>
 
-      {message && (
-        <div className="mt-4 p-3 bg-red-900 border border-red-700 text-red-300 rounded-lg text-sm text-center">
-          {message}
-        </div>
-      )}
     </div>
   )
 }

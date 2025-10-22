@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 export default function SellPage() {
   const [user, setUser] = useState<any>(null)
@@ -13,7 +14,6 @@ export default function SellPage() {
   const [images, setImages] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
   const [myItems, setMyItems] = useState<any[]>([])
   const [showForm, setShowForm] = useState(false)
   const router = useRouter()
@@ -102,7 +102,6 @@ export default function SellPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setMessage('')
 
     try {
       console.log('Submitting images:', images)
@@ -119,7 +118,7 @@ export default function SellPage() {
 
       if (error) throw error
 
-      setMessage('Item listed successfully!')
+      toast.success('Item listed successfully!')
       setShowForm(false)
       fetchMyItems()
       setName('')
@@ -128,7 +127,7 @@ export default function SellPage() {
       setDescription('')
       setImages([])
     } catch (error: any) {
-      setMessage(error.message)
+      toast.error(error.message)
     } finally {
       setLoading(false)
     }
@@ -136,8 +135,8 @@ export default function SellPage() {
 
   return (
     <div className="min-h-screen bg-slate-950">
-      <nav className="bg-gradient-to-r from-green-900 to-emerald-900 border-b border-green-700 px-6 py-4 shadow-lg">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
             <img src="/logo.png" alt="Campus Trade Logo" className="h-10 w-10" />
             <div>
@@ -145,16 +144,10 @@ export default function SellPage() {
               <p className="text-xs text-green-200">Student Marketplace</p>
             </div>
           </div>
-          <button
-            onClick={() => router.push('/')}
-            className="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2 rounded-lg transition-all"
-          >
+          <button onClick={() => router.push('/')} className="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2 rounded-lg transition-all">
             Back to Home
           </button>
         </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold text-white">My Listings</h2>
           <button onClick={() => setShowForm(!showForm)} className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-all flex items-center gap-2">
@@ -230,10 +223,10 @@ export default function SellPage() {
             />
             {uploading && <p className="text-green-400 text-sm mb-3">Uploading images...</p>}
             {images.length > 0 && (
-              <div className="grid grid-cols-3 gap-3">
+              <div className="flex flex-wrap gap-3">
                 {images.map((img, index) => (
                   <div key={index} className="relative group">
-                    <img src={img} alt={`Preview ${index + 1}`} className="w-full h-24 object-cover rounded-lg" />
+                    <img src={img} alt={`Preview ${index + 1}`} className="max-w-xs max-h-64 object-contain rounded-lg" />
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
@@ -254,12 +247,6 @@ export default function SellPage() {
           >
             {loading ? 'Listing...' : uploading ? 'Uploading images...' : 'List Item'}
           </button>
-
-          {message && (
-            <div className={`p-3 rounded-lg text-center ${message.includes('success') ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}`}>
-              {message}
-            </div>
-          )}
         </form>
         )}
 

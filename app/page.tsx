@@ -21,6 +21,17 @@ export default function Home() {
   useEffect(() => {
     checkUser()
   }, [])
+
+  useEffect(() => {
+    if (user) {
+      const updateActivity = async () => {
+        await supabase.from('user_profiles').update({ last_seen: new Date().toISOString() }).eq('id', user.id)
+      }
+      updateActivity()
+      const interval = setInterval(updateActivity, 60000)
+      return () => clearInterval(interval)
+    }
+  }, [user])
   
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -57,10 +68,10 @@ export default function Home() {
           itemsData.map(async (item) => {
             const { data: profile } = await supabase
               .from('user_profiles')
-              .select('email')
+              .select('first_name, last_name, profile_picture')
               .eq('id', item.seller_id)
               .single()
-            return { ...item, seller_email: profile?.email }
+            return { ...item, seller_profile: profile }
           })
         )
         setItems(itemsWithSeller)
@@ -81,26 +92,38 @@ export default function Home() {
             const otherUserId = chat.buyer_id === user.id ? chat.seller_id : chat.buyer_id
             const { data: profile } = await supabase
               .from('user_profiles')
-              .select('email')
+              .select('first_name, last_name, profile_picture, last_seen')
               .eq('id', otherUserId)
               .single()
-            return { ...chat, other_user: profile }
+            return { ...chat, other_user: profile, other_user_id: otherUserId }
           })
         )
         setChats(chatsWithUsers)
       }
     }
+    
+    if (showChats) {
+      fetchChats()
+      const interval = setInterval(fetchChats, 30000)
+      return () => clearInterval(interval)
+    }
 
     if (profile) {
       fetchItems()
-      fetchChats()
+      if (showChats) fetchChats()
     }
-  }, [profile, user])
+  }, [profile, user, showChats])
 
   useEffect(() => {
-    if (selectedChat) {
+    if (selectedChat && user) {
       fetchMessages()
       scrollToBottom()
+      
+      const updateActivity = async () => {
+        await supabase.from('user_profiles').update({ last_seen: new Date().toISOString() }).eq('id', user.id)
+      }
+      updateActivity()
+      const activityInterval = setInterval(updateActivity, 60000)
       
       const channel = supabase
         .channel(`chat-${selectedChat.id}`)
@@ -119,10 +142,11 @@ export default function Home() {
         .subscribe()
 
       return () => {
+        clearInterval(activityInterval)
         supabase.removeChannel(channel)
       }
     }
-  }, [selectedChat])
+  }, [selectedChat, user])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -165,7 +189,47 @@ export default function Home() {
     router.push('/auth')
   }
 
-  if (loading) return <div className="p-8">Loading...</div>
+  if (loading) return (
+    <div className="min-h-screen bg-slate-950">
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="mb-6 flex flex-col md:flex-row gap-4 items-center animate-pulse">
+          <div className="flex items-center space-x-3">
+            <div className="h-10 w-10 bg-slate-800 rounded"></div>
+            <div>
+              <div className="h-6 w-32 bg-slate-800 rounded mb-1"></div>
+              <div className="h-3 w-24 bg-slate-800 rounded"></div>
+            </div>
+          </div>
+          <div className="flex-1 w-full">
+            <div className="h-12 bg-slate-800 rounded-lg"></div>
+          </div>
+          <div className="flex gap-3">
+            <div className="h-12 w-28 bg-slate-800 rounded-lg"></div>
+            <div className="h-12 w-20 bg-slate-800 rounded-lg"></div>
+            <div className="h-12 w-24 bg-slate-800 rounded-lg"></div>
+          </div>
+        </div>
+        <div className="space-y-8">
+          {[1, 2, 3].map(i => (
+            <div key={i}>
+              <div className="h-8 w-32 bg-slate-800 rounded mb-4 animate-pulse"></div>
+              <div className="flex gap-6">
+                {[1, 2, 3, 4].map(j => (
+                  <div key={j} className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden animate-pulse" style={{ width: '280px' }}>
+                    <div className="h-48 bg-slate-800"></div>
+                    <div className="p-4">
+                      <div className="h-5 bg-slate-800 rounded mb-2"></div>
+                      <div className="h-4 w-20 bg-slate-800 rounded"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 
   if (!profile?.approved) {
     return (
@@ -198,8 +262,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-950">
-      <nav className="bg-gradient-to-r from-green-900 to-emerald-900 border-b border-green-700 px-6 py-4 shadow-lg">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="mb-6 flex flex-col md:flex-row gap-4 items-center">
           <div className="flex items-center space-x-3">
             <img src="/logo.png" alt="Campus Trade Logo" className="h-10 w-10" />
             <div>
@@ -207,17 +271,6 @@ export default function Home() {
               <p className="text-xs text-green-200">Student Marketplace</p>
             </div>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg transition-all shadow-md hover:shadow-lg"
-          >
-            Sign Out
-          </button>
-        </div>
-      </nav>
-      
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-6 flex flex-col md:flex-row gap-4 items-center">
           <div className="flex-1 w-full">
             <div className="relative">
               <input
@@ -245,7 +298,7 @@ export default function Home() {
               </svg>
               Sell
             </button>
-            <button className="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white px-4 py-3 rounded-lg transition-all flex items-center gap-2">
+            <button onClick={() => router.push('/profile')} className="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white px-4 py-3 rounded-lg transition-all flex items-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
@@ -283,26 +336,53 @@ export default function Home() {
                   )}
                   <div id={`carousel-${category}`} className="overflow-x-auto scrollbar-hide">
                     <div className="flex gap-6 pb-4" style={{ width: 'max-content' }}>
-                      {categoryItems.map(item => (
-                        <div key={item.id} onClick={() => router.push(`/item/${item.id}`)} className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden hover:border-green-600 transition-all cursor-pointer" style={{ width: '280px', flexShrink: 0 }}>
-                          <div className="h-48 bg-slate-800 flex items-center justify-center">
-                            {item.images && item.images.length > 0 ? (
-                              <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <svg className="w-16 h-16 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                            )}
-                          </div>
-                          <div className="p-4">
-                            <div className="flex justify-between items-start mb-2">
-                              <h3 className="text-lg font-bold text-white">{item.name}</h3>
-                              <span className="text-green-400 font-bold">${item.price}</span>
+                      {categoryItems.map(item => {
+                        const timeAgo = (date: string) => {
+                          const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000)
+                          if (seconds < 60) return 'just now'
+                          const minutes = Math.floor(seconds / 60)
+                          if (minutes < 60) return `${minutes}m ago`
+                          const hours = Math.floor(minutes / 60)
+                          if (hours < 24) return `${hours}h ago`
+                          const days = Math.floor(hours / 24)
+                          if (days < 30) return `${days}d ago`
+                          const months = Math.floor(days / 30)
+                          return `${months}mo ago`
+                        }
+                        
+                        return (
+                          <div key={item.id} onClick={() => router.push(`/item/${item.id}`)} className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden hover:border-green-600 transition-all cursor-pointer" style={{ width: '280px', flexShrink: 0 }}>
+                            <div className="h-48 bg-slate-800 flex items-center justify-center">
+                              {item.images && item.images.length > 0 ? (
+                                <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <svg className="w-16 h-16 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              )}
                             </div>
-                            <p className="text-sm text-gray-400">{item.seller_email?.split('@')[0] || 'Unknown'}</p>
+                            <div className="p-4">
+                              <div className="flex justify-between items-start mb-2">
+                                <h3 className="text-lg font-bold text-white">{item.name}</h3>
+                                <span className="text-green-400 font-bold">${item.price}</span>
+                              </div>
+                              <div className="flex items-center gap-2 mb-2">
+                                {item.seller_profile?.profile_picture ? (
+                                  <img src={item.seller_profile.profile_picture} alt="Seller" className="w-6 h-6 rounded-full object-cover" />
+                                ) : (
+                                  <div className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center">
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                  </div>
+                                )}
+                                <p className="text-sm text-gray-400">{item.seller_profile ? `${item.seller_profile.first_name} ${item.seller_profile.last_name}` : 'Unknown'}</p>
+                              </div>
+                              <p className="text-xs text-gray-500">{timeAgo(item.created_at)}</p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                   {categoryItems.length > 4 && (
@@ -349,12 +429,44 @@ export default function Home() {
                 {chats.length === 0 ? (
                   <div className="p-4 text-center text-gray-400">No messages</div>
                 ) : (
-                  chats.map(chat => (
-                    <div key={chat.id} onClick={() => setSelectedChat(chat)} className="p-4 hover:bg-slate-800 cursor-pointer border-b border-slate-700">
-                      <p className="text-white font-medium">{chat.items.name}</p>
-                      <p className="text-sm text-gray-400">{chat.other_user?.email?.split('@')[0]}</p>
-                    </div>
-                  ))
+                  chats.map(chat => {
+                    const getActiveStatus = (lastSeen: string) => {
+                      if (!lastSeen) return 'Offline'
+                      const diff = new Date().getTime() - new Date(lastSeen).getTime()
+                      const minutes = Math.floor(diff / 60000)
+                      if (minutes < 5) return 'Active now'
+                      if (minutes < 60) return `Active ${minutes}m ago`
+                      const hours = Math.floor(minutes / 60)
+                      if (hours < 24) return `Active ${hours}h ago`
+                      const days = Math.floor(hours / 24)
+                      return `Active ${days}d ago`
+                    }
+                    
+                    return (
+                      <div key={chat.id} onClick={() => setSelectedChat(chat)} className="p-4 hover:bg-slate-800 cursor-pointer border-b border-slate-700">
+                        <div className="flex items-center gap-3 mb-2">
+                          {chat.other_user?.profile_picture ? (
+                            <img src={chat.other_user.profile_picture} alt="User" className="w-10 h-10 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
+                              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <p className="text-white font-medium">{chat.items.name}</p>
+                            <p className="text-sm text-gray-400">
+                              {chat.other_user_id === chat.buyer_id ? 'Buyer' : 'Seller'}: {chat.other_user ? `${chat.other_user.first_name} ${chat.other_user.last_name}` : 'Unknown'}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-gray-500">{getActiveStatus(chat.other_user?.last_seen)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })
                 )}
               </div>
             ) : (
@@ -365,9 +477,35 @@ export default function Home() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                   </button>
-                  <div>
+                  <div className="cursor-pointer" onClick={() => router.push(`/user/${selectedChat.other_user_id}`)}>
+                    {selectedChat.other_user?.profile_picture ? (
+                      <img src={selectedChat.other_user.profile_picture} alt="User" className="w-8 h-8 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 cursor-pointer" onClick={() => router.push(`/user/${selectedChat.other_user_id}`)}>
                     <p className="text-white text-sm font-medium">{selectedChat.items.name}</p>
-                    <p className="text-xs text-gray-400">{selectedChat.other_user?.email?.split('@')[0]}</p>
+                    <p className="text-xs text-gray-400">{selectedChat.other_user ? `${selectedChat.other_user.first_name} ${selectedChat.other_user.last_name}` : 'Unknown'}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-500">
+                      {(() => {
+                        if (!selectedChat.other_user?.last_seen) return 'Offline'
+                        const diff = new Date().getTime() - new Date(selectedChat.other_user.last_seen).getTime()
+                        const minutes = Math.floor(diff / 60000)
+                        if (minutes < 5) return <span className="text-green-400">● Active</span>
+                        if (minutes < 60) return `${minutes}m ago`
+                        const hours = Math.floor(minutes / 60)
+                        if (hours < 24) return `${hours}h ago`
+                        const days = Math.floor(hours / 24)
+                        return `${days}d ago`
+                      })()}
+                    </p>
                   </div>
                 </div>
                 
