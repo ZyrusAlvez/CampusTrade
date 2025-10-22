@@ -323,9 +323,9 @@ export default function Home() {
         </div>
 
         <div className="space-y-8">
-          {['Books', 'Electronics', 'Uniforms', 'Accessories', 'Furniture', 'Other'].map(category => {
+          {['All', 'Books', 'Electronics', 'Uniforms', 'Accessories', 'Furniture', 'Other'].map(category => {
             const categoryItems = items.filter(item => 
-              item.category === category &&
+              (category === 'All' || item.category === category) &&
               (item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
               item.category.toLowerCase().includes(searchQuery.toLowerCase()))
             )
