@@ -172,7 +172,7 @@ export default function SellPage() {
           </div>
 
           <div>
-            <label className="block text-white mb-2">Price ($)</label>
+            <label className="block text-white mb-2">Price (₱)</label>
             <input
               type="number"
               step="0.01"
@@ -270,7 +270,7 @@ export default function SellPage() {
                 <div className="p-4">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-lg font-bold text-white">{item.name}</h3>
-                    <span className="text-green-400 font-bold">${item.price}</span>
+                    <span className="text-green-400 font-bold">₱{item.price}</span>
                   </div>
                   <p className="text-sm text-gray-400 mb-3">{item.category}</p>
                   <button onClick={() => router.push('/messages')} className="w-full bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-lg transition-all text-sm">

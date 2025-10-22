@@ -385,7 +385,7 @@ export default function Home() {
                             <div className="p-4">
                               <div className="flex justify-between items-start mb-2">
                                 <h3 className="text-lg font-bold text-white">{item.name}</h3>
-                                <span className="text-green-400 font-bold">${item.price}</span>
+                                <span className="text-green-400 font-bold">₱{item.price}</span>
                               </div>
                               <div className="flex items-center gap-2 mb-2">
                                 {item.seller_profile?.profile_picture ? (

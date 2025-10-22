@@ -179,7 +179,7 @@ export default function ItemPage() {
 
             <div>
               <h1 className="text-3xl font-bold text-white mb-4">{item.name}</h1>
-              <p className="text-4xl font-bold text-green-400 mb-4">${item.price}</p>
+              <p className="text-4xl font-bold text-green-400 mb-4">₱{item.price}</p>
               
               <div className="mb-6">
                 <p className="text-sm text-gray-400 mb-2">Category</p>
