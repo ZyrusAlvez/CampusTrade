@@ -15,7 +15,10 @@ export default function Home() {
   const [messages, setMessages] = useState<any[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [showChats, setShowChats] = useState(false)
+  const [otherUserTyping, setOtherUserTyping] = useState(false)
+  const [clickedMessageId, setClickedMessageId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -139,10 +142,22 @@ export default function Home() {
             return [...prev, payload.new]
           })
         })
-        .subscribe()
+        .on('presence', { event: 'sync' }, () => {
+          const state = channel.presenceState()
+          const otherUsers = Object.values(state).filter((presence: any) => 
+            presence[0]?.user_id !== user.id
+          )
+          setOtherUserTyping(otherUsers.some((u: any) => u[0]?.typing))
+        })
+        .subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            await channel.track({ user_id: user.id, typing: false })
+          }
+        })
 
       return () => {
         clearInterval(activityInterval)
+        channel.untrack()
         supabase.removeChannel(channel)
       }
     }
@@ -461,7 +476,19 @@ export default function Home() {
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-xs text-gray-500">{getActiveStatus(chat.other_user?.last_seen)}</p>
+                            <p className="text-xs text-gray-500 flex items-center justify-end gap-1">
+                              {(() => {
+                                if (!chat.other_user?.last_seen) return 'Offline'
+                                const diff = new Date().getTime() - new Date(chat.other_user.last_seen).getTime()
+                                const minutes = Math.floor(diff / 60000)
+                                if (minutes < 5) return <><span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>Active now</>
+                                if (minutes < 60) return `Active ${minutes}m ago`
+                                const hours = Math.floor(minutes / 60)
+                                if (hours < 24) return `Active ${hours}h ago`
+                                const days = Math.floor(hours / 24)
+                                return `Active ${days}d ago`
+                              })()}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -498,7 +525,7 @@ export default function Home() {
                         if (!selectedChat.other_user?.last_seen) return 'Offline'
                         const diff = new Date().getTime() - new Date(selectedChat.other_user.last_seen).getTime()
                         const minutes = Math.floor(diff / 60000)
-                        if (minutes < 5) return <span className="text-green-400">● Active</span>
+                        if (minutes < 5) return <span className="text-green-400 flex items-center gap-1"><span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>Active</span>
                         if (minutes < 60) return `${minutes}m ago`
                         const hours = Math.floor(minutes / 60)
                         if (hours < 24) return `${hours}h ago`
@@ -511,12 +538,36 @@ export default function Home() {
                 
                 <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
                   {messages.map(msg => (
-                    <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${msg.sender_id === user?.id ? 'bg-green-600 text-white' : 'bg-slate-800 text-white'}`}>
+                    <div key={msg.id} className={`flex flex-col ${msg.sender_id === user?.id ? 'items-end' : 'items-start'}`}>
+                      <div 
+                        onClick={() => setClickedMessageId(clickedMessageId === msg.id ? null : msg.id)}
+                        className={`max-w-xs px-3 py-2 rounded-lg text-sm cursor-pointer hover:opacity-90 transition-opacity ${msg.sender_id === user?.id ? 'bg-green-600 text-white' : 'bg-slate-800 text-white'}`}
+                      >
                         {msg.message}
                       </div>
+                      {clickedMessageId === msg.id && (
+                        <div className="text-xs text-gray-400 mt-1 px-1">
+                          {new Date(msg.created_at).toLocaleString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric', 
+                            hour: 'numeric', 
+                            minute: '2-digit', 
+                            hour12: true 
+                          })}
+                        </div>
+                      )}
                     </div>
                   ))}
+                  {otherUserTyping && (
+                    <div className="flex justify-start">
+                      <div className="bg-slate-800 px-4 py-2 rounded-lg flex gap-1">
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                      </div>
+                    </div>
+                  )}
                   <div ref={messagesEndRef} />
                 </div>
                 
@@ -525,7 +576,17 @@ export default function Home() {
                     <input
                       type="text"
                       value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
+                      onChange={async (e) => {
+                        setNewMessage(e.target.value)
+                        
+                        const channel = supabase.channel(`chat-${selectedChat.id}`)
+                        await channel.track({ user_id: user.id, typing: e.target.value.length > 0 })
+                        
+                        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+                        typingTimeoutRef.current = setTimeout(async () => {
+                          await channel.track({ user_id: user.id, typing: false })
+                        }, 1000)
+                      }}
                       placeholder="Type a message..."
                       className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm placeholder-gray-400 focus:border-green-500 focus:outline-none"
                     />

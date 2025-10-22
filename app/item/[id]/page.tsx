@@ -15,7 +15,10 @@ export default function ItemPage() {
   const [user, setUser] = useState<any>(null)
   const [selectedImage, setSelectedImage] = useState(0)
   const [showLightbox, setShowLightbox] = useState(false)
+  const [otherUserTyping, setOtherUserTyping] = useState(false)
+  const [clickedMessageId, setClickedMessageId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const params = useParams()
 
@@ -43,9 +46,21 @@ export default function ItemPage() {
             return [...prev, payload.new]
           })
         })
-        .subscribe()
+        .on('presence', { event: 'sync' }, () => {
+          const state = channel.presenceState()
+          const otherUsers = Object.values(state).filter((presence: any) => 
+            presence[0]?.user_id !== user.id
+          )
+          setOtherUserTyping(otherUsers.some((u: any) => u[0]?.typing))
+        })
+        .subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            await channel.track({ user_id: user.id, typing: false })
+          }
+        })
 
       return () => {
+        channel.untrack()
         supabase.removeChannel(channel)
       }
     }
@@ -71,7 +86,7 @@ export default function ItemPage() {
       
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('first_name, last_name, profile_picture')
+        .select('first_name, last_name, profile_picture, last_seen')
         .eq('id', itemData.seller_id)
         .single()
       
@@ -290,27 +305,79 @@ export default function ItemPage() {
         {/* Floating Chat */}
         {showChat && chat && (
           <div className="fixed bottom-4 right-4 w-80 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50">
-            <div className="bg-gradient-to-r from-green-900 to-emerald-900 p-4 rounded-t-xl flex justify-between items-center">
-              <div className="cursor-pointer" onClick={() => router.push(`/user/${item.seller_id}`)}>
-                <p className="text-white font-bold text-sm">{chat.items.name}</p>
-                <p className="text-xs text-green-200">{sellerProfile ? `${sellerProfile.first_name} ${sellerProfile.last_name}` : 'Unknown'}</p>
+            <div className="bg-gradient-to-r from-green-900 to-emerald-900 p-3 rounded-t-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="cursor-pointer" onClick={() => router.push(`/user/${item.seller_id}`)}>
+                  {sellerProfile?.profile_picture ? (
+                    <img src={sellerProfile.profile_picture} alt="Seller" className="w-10 h-10 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 cursor-pointer" onClick={() => router.push(`/user/${item.seller_id}`)}>
+                  <p className="text-white font-bold text-sm">{chat.items.name}</p>
+                  <p className="text-xs text-green-200">{sellerProfile ? `${sellerProfile.first_name} ${sellerProfile.last_name}` : 'Unknown'}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-green-100 flex items-center justify-end gap-1">
+                    {(() => {
+                      if (!sellerProfile?.last_seen) return 'Offline'
+                      const diff = new Date().getTime() - new Date(sellerProfile.last_seen).getTime()
+                      const minutes = Math.floor(diff / 60000)
+                      if (minutes < 5) return <><span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>Active now</>
+                      if (minutes < 60) return `Active ${minutes}m ago`
+                      const hours = Math.floor(minutes / 60)
+                      if (hours < 24) return `Active ${hours}h ago`
+                      const days = Math.floor(hours / 24)
+                      return `Active ${days}d ago`
+                    })()}
+                  </p>
+                </div>
+                <button onClick={() => setShowChat(false)} className="text-white hover:text-gray-300">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
-              <button onClick={() => setShowChat(false)} className="text-white hover:text-gray-300">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
             </div>
             
             <div className="flex flex-col h-96">
               <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
                 {messages.map(msg => (
-                  <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${msg.sender_id === user?.id ? 'bg-green-600 text-white' : 'bg-slate-800 text-white'}`}>
+                  <div key={msg.id} className={`flex flex-col ${msg.sender_id === user?.id ? 'items-end' : 'items-start'}`}>
+                    <div 
+                      onClick={() => setClickedMessageId(clickedMessageId === msg.id ? null : msg.id)}
+                      className={`max-w-xs px-3 py-2 rounded-lg text-sm cursor-pointer hover:opacity-90 transition-opacity ${msg.sender_id === user?.id ? 'bg-green-600 text-white' : 'bg-slate-800 text-white'}`}
+                    >
                       {msg.message}
                     </div>
+                    {clickedMessageId === msg.id && (
+                      <div className="text-xs text-gray-400 mt-1 px-1">
+                        {new Date(msg.created_at).toLocaleString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric', 
+                          year: 'numeric', 
+                          hour: 'numeric', 
+                          minute: '2-digit', 
+                          hour12: true 
+                        })}
+                      </div>
+                    )}
                   </div>
                 ))}
+                {otherUserTyping && (
+                  <div className="flex justify-start">
+                    <div className="bg-slate-800 px-4 py-2 rounded-lg flex gap-1">
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    </div>
+                  </div>
+                )}
                 <div ref={messagesEndRef} />
               </div>
               
@@ -319,7 +386,17 @@ export default function ItemPage() {
                   <input
                     type="text"
                     value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
+                    onChange={async (e) => {
+                      setNewMessage(e.target.value)
+                      
+                      const channel = supabase.channel(`chat-${chat.id}`)
+                      await channel.track({ user_id: user.id, typing: e.target.value.length > 0 })
+                      
+                      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+                      typingTimeoutRef.current = setTimeout(async () => {
+                        await channel.track({ user_id: user.id, typing: false })
+                      }, 1000)
+                    }}
                     placeholder="Type a message..."
                     className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm placeholder-gray-400 focus:border-green-500 focus:outline-none"
                   />
