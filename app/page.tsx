@@ -8,6 +8,8 @@ export default function Home() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [items, setItems] = useState<any[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
   const router = useRouter()
 
   useEffect(() => {
@@ -36,6 +38,33 @@ export default function Home() {
     setProfile(profile)
     setLoading(false)
   }
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      const { data: itemsData } = await supabase
+        .from('items')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      if (itemsData) {
+        const itemsWithSeller = await Promise.all(
+          itemsData.map(async (item) => {
+            const { data: profile } = await supabase
+              .from('user_profiles')
+              .select('email')
+              .eq('id', item.seller_id)
+              .single()
+            return { ...item, seller_email: profile?.email }
+          })
+        )
+        setItems(itemsWithSeller)
+      }
+    }
+
+    if (profile) {
+      fetchItems()
+    }
+  }, [profile])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -94,75 +123,82 @@ export default function Home() {
       </nav>
       
       <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-white mb-2">Welcome back, Student!</h2>
-          <p className="text-gray-400 mb-4">Browse, buy, and sell preloved items within your campus community</p>
-          <div className="bg-gradient-to-r from-green-900/50 to-emerald-900/50 border border-green-700 text-green-300 px-5 py-4 rounded-xl flex items-center">
-            <svg className="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            <span className="font-medium">Your account is verified and active</span>
+        <div className="mb-6 flex flex-col md:flex-row gap-4 items-center">
+          <div className="flex-1 w-full">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search for items..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-3 pl-12 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+              />
+              <svg className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button className="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white px-4 py-3 rounded-lg transition-all flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Cart
+            </button>
+            <button onClick={() => router.push('/sell')} className="bg-green-600 hover:bg-green-700 border border-green-700 text-white px-4 py-3 rounded-lg transition-all flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Sell
+            </button>
+            <button className="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white px-4 py-3 rounded-lg transition-all flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Profile
+            </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 p-6 rounded-xl border border-green-700/50 hover:border-green-600 transition-all hover:shadow-xl hover:shadow-green-900/20">
-            <div className="flex items-center mb-4">
-              <div className="bg-green-600 p-3 rounded-lg mr-3">
-                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-white">Browse Items</h3>
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-white mb-4">Available Items</h2>
+          {items.filter(item => 
+            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.category.toLowerCase().includes(searchQuery.toLowerCase())
+          ).length === 0 ? (
+            <div className="bg-slate-900 border border-slate-700 rounded-xl p-8 text-center">
+              <p className="text-gray-400">No items found. Be the first to list an item!</p>
             </div>
-            <p className="text-gray-300">Explore preloved uniforms, books, and gadgets</p>
-          </div>
-          
-          <div className="bg-gradient-to-br from-emerald-900/30 to-emerald-800/20 p-6 rounded-xl border border-emerald-700/50 hover:border-emerald-600 transition-all hover:shadow-xl hover:shadow-emerald-900/20">
-            <div className="flex items-center mb-4">
-              <div className="bg-emerald-600 p-3 rounded-lg mr-3">
-                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 3.5a1.5 1.5 0 013 0V4a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-.5a1.5 1.5 0 000 3h.5a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-.5a1.5 1.5 0 00-3 0v.5a1 1 0 01-1 1H6a1 1 0 01-1-1v-3a1 1 0 00-1-1h-.5a1.5 1.5 0 010-3H4a1 1 0 001-1V6a1 1 0 011-1h3a1 1 0 001-1v-.5z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-white">Sell Items</h3>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {items.filter(item => 
+                item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.category.toLowerCase().includes(searchQuery.toLowerCase())
+              ).map(item => (
+                <div key={item.id} className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden hover:border-green-600 transition-all">
+                  <div className="h-48 bg-slate-800 flex items-center justify-center">
+                    {item.images && item.images.length > 0 ? (
+                      <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <svg className="w-16 h-16 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-lg font-bold text-white">{item.name}</h3>
+                      <span className="text-green-400 font-bold">${item.price}</span>
+                    </div>
+                    <p className="text-sm text-gray-400 mb-3">{item.category} • {item.seller_email?.split('@')[0] || 'Unknown'}</p>
+                    <button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg transition-all">
+                      Add to Cart
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-            <p className="text-gray-300">List your preloved items for sale</p>
-          </div>
-          
-          <div className="bg-gradient-to-br from-red-900/30 to-red-800/20 p-6 rounded-xl border border-red-700/50 hover:border-red-600 transition-all hover:shadow-xl hover:shadow-red-900/20">
-            <div className="flex items-center mb-4">
-              <div className="bg-red-600 p-3 rounded-lg mr-3">
-                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                  <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-white">My Orders</h3>
-            </div>
-            <p className="text-gray-300">Track your purchases and sales</p>
-          </div>
-          
-          <div className="bg-gradient-to-br from-slate-800/50 to-slate-700/30 p-6 rounded-xl border border-slate-600/50 hover:border-slate-500 transition-all hover:shadow-xl hover:shadow-slate-900/20">
-            <div className="flex items-center mb-4">
-              <div className="bg-slate-600 p-3 rounded-lg mr-3">
-                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-white">My Profile</h3>
-            </div>
-            <p className="text-gray-300">Manage your account settings</p>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-r from-green-900/20 to-emerald-900/20 border border-green-700/30 rounded-xl p-6">
-          <h3 className="text-xl font-bold text-white mb-3">About Campus Trade</h3>
-          <p className="text-gray-300 leading-relaxed">
-            Campus Trade is your trusted campus marketplace for buying and selling preloved items. 
-            From textbooks and uniforms to gadgets and school supplies, connect with fellow students 
-            in a safe, organized, and convenient platform designed specifically for the university community.
-          </p>
+          )}
         </div>
       </div>
     </div>
