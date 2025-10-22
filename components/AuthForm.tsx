@@ -76,9 +76,9 @@ export default function AuthForm() {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 bg-gray-800 rounded-xl border border-gray-700 shadow-2xl">
+    <div className="w-full max-w-md mx-auto p-6 bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl border border-green-700/30 shadow-2xl shadow-green-900/20">
       <h2 className="text-2xl font-bold mb-6 text-center text-white">
-        {isSignUp ? 'Create Account' : 'Sign In'}
+        {isSignUp ? 'Join Campus Trade' : 'Welcome Back'}
       </h2>
       
       <form onSubmit={handleAuth} className="space-y-4">
@@ -87,7 +87,7 @@ export default function AuthForm() {
           placeholder="Email address"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-colors"
+          className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none transition-all"
           required
         />
         <input
@@ -95,13 +95,13 @@ export default function AuthForm() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-colors"
+          className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none transition-all"
           required
         />
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white p-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
         >
           {loading ? (
             <div className="flex items-center justify-center">
@@ -109,7 +109,7 @@ export default function AuthForm() {
               Loading...
             </div>
           ) : (
-            isSignUp ? 'Create Account' : 'Sign In'
+            isSignUp ? 'Create Account' : 'Sign In to Campus Trade'
           )}
         </button>
       </form>
@@ -117,10 +117,10 @@ export default function AuthForm() {
       <div className="my-6 text-center">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-600"></div>
+            <div className="w-full border-t border-slate-600"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-gray-800 text-gray-400">or</span>
+            <span className="px-2 bg-slate-900 text-gray-400">or</span>
           </div>
         </div>
       </div>
@@ -128,7 +128,7 @@ export default function AuthForm() {
       <button
         onClick={handleGoogleAuth}
         disabled={loading}
-        className="w-full bg-white hover:bg-gray-100 text-gray-900 p-3 rounded-lg font-medium border border-gray-300 disabled:opacity-50 transition-colors flex items-center justify-center"
+        className="w-full bg-white hover:bg-gray-100 text-gray-900 p-3 rounded-lg font-medium border border-gray-300 disabled:opacity-50 transition-all shadow-md hover:shadow-lg flex items-center justify-center"
       >
         <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -143,7 +143,7 @@ export default function AuthForm() {
         {isSignUp ? 'Already have an account?' : "Don't have an account?"}
         <button
           onClick={() => setIsSignUp(!isSignUp)}
-          className="ml-2 text-blue-400 hover:text-blue-300 font-medium transition-colors"
+          className="ml-2 text-green-400 hover:text-green-300 font-medium transition-colors"
         >
           {isSignUp ? 'Sign In' : 'Sign Up'}
         </button>

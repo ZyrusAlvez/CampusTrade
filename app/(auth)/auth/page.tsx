@@ -21,12 +21,13 @@ export default function SignIn() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-      <div className="w-full max-w-md mx-auto px-4">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+      <div className="w-full max-w-md mx-auto">
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="Logo" className="h-16 w-16 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-gray-400">Sign in to your account</p>
+          <img src="/logo.png" alt="Campus Trade Logo" className="h-20 w-20 mx-auto mb-4" />
+          <h1 className="text-4xl font-bold text-white mb-2">Campus Trade</h1>
+          <p className="text-green-400 text-lg mb-2">Student Marketplace</p>
+          <p className="text-gray-400">Buy and sell preloved items within your campus</p>
         </div>
         <AuthForm />
       </div>

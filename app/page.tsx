@@ -46,18 +46,25 @@ export default function Home() {
 
   if (!profile?.approved) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-8">
-          <div className="mb-6">
-            <img src="/logo.png" alt="Logo" className="h-16 w-16 mx-auto mb-4" />
-            <h1 className="text-3xl font-bold mb-4">Account Pending Approval</h1>
-            <div className="bg-yellow-900 border border-yellow-700 text-yellow-300 px-4 py-3 rounded-lg mb-6">
-              ⏳ Your account is waiting for admin approval. You'll receive an email once approved.
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-center max-w-lg mx-auto p-8">
+          <div className="mb-8">
+            <img src="/logo.png" alt="Campus Trade Logo" className="h-20 w-20 mx-auto mb-6" />
+            <h1 className="text-4xl font-bold text-white mb-3">Campus Trade</h1>
+            <p className="text-green-400 text-lg mb-6">Student Marketplace</p>
+            <div className="bg-gradient-to-r from-yellow-900/50 to-orange-900/50 border border-yellow-700 text-yellow-200 px-6 py-5 rounded-xl mb-6">
+              <div className="flex items-center justify-center mb-3">
+                <svg className="w-8 h-8 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                </svg>
+                <h2 className="text-xl font-bold">Account Pending Approval</h2>
+              </div>
+              <p className="text-yellow-100">Your account is being reviewed by our admin team. You'll receive an email notification once approved to start trading!</p>
             </div>
           </div>
           <button
             onClick={handleSignOut}
-            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-colors"
+            className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg transition-all shadow-lg hover:shadow-xl font-medium"
           >
             Sign Out
           </button>
@@ -67,66 +74,95 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <nav className="bg-gray-800 border-b border-gray-700 px-6 py-4">
-        <div className="flex justify-between items-center">
+    <div className="min-h-screen bg-slate-950">
+      <nav className="bg-gradient-to-r from-green-900 to-emerald-900 border-b border-green-700 px-6 py-4 shadow-lg">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-3">
-            <img src="/logo.png" alt="Logo" className="h-8 w-8" />
-            <h1 className="text-xl font-bold text-white">Dashboard</h1>
+            <img src="/logo.png" alt="Campus Trade Logo" className="h-10 w-10" />
+            <div>
+              <h1 className="text-2xl font-bold text-white">Campus Trade</h1>
+              <p className="text-xs text-green-200">Student Marketplace</p>
+            </div>
           </div>
           <button
             onClick={handleSignOut}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg transition-all shadow-md hover:shadow-lg"
           >
             Sign Out
           </button>
         </div>
       </nav>
       
-      <div className="p-6">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2">Welcome back, {user?.email}</h2>
-          <div className="bg-green-900 border border-green-700 text-green-300 px-4 py-3 rounded-lg">
-            ✓ Your account is approved and active
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-white mb-2">Welcome back, Student!</h2>
+          <p className="text-gray-400 mb-4">Browse, buy, and sell preloved items within your campus community</p>
+          <div className="bg-gradient-to-r from-green-900/50 to-emerald-900/50 border border-green-700 text-green-300 px-5 py-4 rounded-xl flex items-center">
+            <svg className="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <span className="font-medium">Your account is verified and active</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 hover:border-gray-600 transition-colors">
-            <div className="flex items-center mb-3">
-              <div className="bg-blue-600 p-2 rounded-lg mr-3">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 p-6 rounded-xl border border-green-700/50 hover:border-green-600 transition-all hover:shadow-xl hover:shadow-green-900/20">
+            <div className="flex items-center mb-4">
+              <div className="bg-green-600 p-3 rounded-lg mr-3">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-white">Browse Items</h3>
+            </div>
+            <p className="text-gray-300">Explore preloved uniforms, books, and gadgets</p>
+          </div>
+          
+          <div className="bg-gradient-to-br from-emerald-900/30 to-emerald-800/20 p-6 rounded-xl border border-emerald-700/50 hover:border-emerald-600 transition-all hover:shadow-xl hover:shadow-emerald-900/20">
+            <div className="flex items-center mb-4">
+              <div className="bg-emerald-600 p-3 rounded-lg mr-3">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 3.5a1.5 1.5 0 013 0V4a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-.5a1.5 1.5 0 000 3h.5a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-.5a1.5 1.5 0 00-3 0v.5a1 1 0 01-1 1H6a1 1 0 01-1-1v-3a1 1 0 00-1-1h-.5a1.5 1.5 0 010-3H4a1 1 0 001-1V6a1 1 0 011-1h3a1 1 0 001-1v-.5z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-white">Sell Items</h3>
+            </div>
+            <p className="text-gray-300">List your preloved items for sale</p>
+          </div>
+          
+          <div className="bg-gradient-to-br from-red-900/30 to-red-800/20 p-6 rounded-xl border border-red-700/50 hover:border-red-600 transition-all hover:shadow-xl hover:shadow-red-900/20">
+            <div className="flex items-center mb-4">
+              <div className="bg-red-600 p-3 rounded-lg mr-3">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                  <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-white">My Orders</h3>
+            </div>
+            <p className="text-gray-300">Track your purchases and sales</p>
+          </div>
+          
+          <div className="bg-gradient-to-br from-slate-800/50 to-slate-700/30 p-6 rounded-xl border border-slate-600/50 hover:border-slate-500 transition-all hover:shadow-xl hover:shadow-slate-900/20">
+            <div className="flex items-center mb-4">
+              <div className="bg-slate-600 p-3 rounded-lg mr-3">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold">Profile</h3>
+              <h3 className="text-xl font-bold text-white">My Profile</h3>
             </div>
-            <p className="text-gray-400">Manage your account settings</p>
+            <p className="text-gray-300">Manage your account settings</p>
           </div>
-          
-          <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 hover:border-gray-600 transition-colors">
-            <div className="flex items-center mb-3">
-              <div className="bg-purple-600 p-2 rounded-lg mr-3">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold">Orders</h3>
-            </div>
-            <p className="text-gray-400">View your order history</p>
-          </div>
-          
-          <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 hover:border-gray-600 transition-colors">
-            <div className="flex items-center mb-3">
-              <div className="bg-green-600 p-2 rounded-lg mr-3">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-2 0c0 .993-.241 1.929-.668 2.754l-1.524-1.525a3.997 3.997 0 00.078-2.183l1.562-1.562C15.802 8.249 16 9.1 16 10zm-5.165 3.913l1.58 1.58A5.98 5.98 0 0110 16a5.98 5.98 0 01-2.516-.552l1.562-1.562a4.006 4.006 0 001.789.027zm-4.677-2.796a4.002 4.002 0 01-.041-2.08l-1.588-1.588A5.98 5.98 0 004 10c0 .954.223 1.856.619 2.657l1.539-1.54zm1.088-6.45A5.974 5.974 0 0110 4c.954 0 1.856.223 2.657.619l-1.54 1.539a4.002 4.002 0 00-2.346.033L7.246 4.667z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold">Support</h3>
-            </div>
-            <p className="text-gray-400">Get help and support</p>
-          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-green-900/20 to-emerald-900/20 border border-green-700/30 rounded-xl p-6">
+          <h3 className="text-xl font-bold text-white mb-3">About Campus Trade</h3>
+          <p className="text-gray-300 leading-relaxed">
+            Campus Trade is your trusted campus marketplace for buying and selling preloved items. 
+            From textbooks and uniforms to gadgets and school supplies, connect with fellow students 
+            in a safe, organized, and convenient platform designed specifically for the university community.
+          </p>
         </div>
       </div>
     </div>

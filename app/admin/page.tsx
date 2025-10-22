@@ -30,7 +30,6 @@ export default function AdminPage() {
       return
     }
 
-    // Use API call to bypass RLS
     const response = await fetch(`/api/user-profile/${user.id}`)
     const profile = await response.json()
       
@@ -44,7 +43,6 @@ export default function AdminPage() {
 
   const fetchUsers = async () => {
     try {
-      // Use API call to bypass RLS
       const response = await fetch('/api/users')
       const data = await response.json()
       
@@ -99,30 +97,33 @@ export default function AdminPage() {
     router.push('/auth')
   }
 
-  if (loading) return <div className="p-8">Loading...</div>
+  if (loading) return <div className="p-8 bg-slate-950 min-h-screen text-white">Loading...</div>
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <nav className="bg-gray-800 border-b border-gray-700 px-6 py-4">
-        <div className="flex justify-between items-center">
+    <div className="min-h-screen bg-slate-950 text-white">
+      <nav className="bg-gradient-to-r from-red-900 to-rose-900 border-b border-red-700 px-6 py-4 shadow-lg">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-3">
-            <img src="/logo.png" alt="Logo" className="h-8 w-8" />
-            <h1 className="text-xl font-bold">Admin Dashboard</h1>
+            <img src="/logo.png" alt="Campus Trade Logo" className="h-10 w-10" />
+            <div>
+              <h1 className="text-2xl font-bold text-white">Campus Trade Admin</h1>
+              <p className="text-xs text-red-200">Management Dashboard</p>
+            </div>
           </div>
           <button
             onClick={handleSignOut}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg transition-all shadow-md hover:shadow-lg"
           >
             Sign Out
           </button>
         </div>
       </nav>
       
-      <div className="p-6">
+      <div className="max-w-7xl mx-auto p-6">
         <div className="mb-6 flex flex-wrap gap-3">
           <button
             onClick={syncUsers}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all shadow-md"
           >
             Sync Existing Users
           </button>
@@ -133,7 +134,7 @@ export default function AdminPage() {
                 alert('Fixed unconfirmed emails')
               }
             }}
-            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-all shadow-md"
           >
             Fix Email Confirmations
           </button>
@@ -141,7 +142,7 @@ export default function AdminPage() {
 
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-4 flex items-center">
-            <div className="bg-purple-600 p-2 rounded-lg mr-3">
+            <div className="bg-red-600 p-2 rounded-lg mr-3">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
               </svg>
@@ -150,19 +151,19 @@ export default function AdminPage() {
           </h2>
           <div className="space-y-3">
             {admins.length === 0 ? (
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-gray-400">
+              <div className="bg-slate-900 border border-slate-700 rounded-lg p-4 text-gray-400">
                 No administrators found.
               </div>
             ) : (
               admins.map(admin => (
-                <div key={admin.id} className="bg-gray-800 border border-gray-700 p-4 rounded-lg flex justify-between items-center">
+                <div key={admin.id} className="bg-gradient-to-r from-red-900/30 to-rose-900/30 border border-red-700/50 p-4 rounded-lg flex justify-between items-center">
                   <div>
                     <p className="font-medium text-white">{admin.email}</p>
-                    <p className="text-sm text-purple-400">Administrator</p>
+                    <p className="text-sm text-red-400">Administrator</p>
                   </div>
                   <button
                     onClick={() => handleRoleChange(admin.id, 'user')}
-                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-all shadow-md"
                   >
                     Revoke Admin
                   </button>
@@ -174,7 +175,7 @@ export default function AdminPage() {
 
         <div>
           <h2 className="text-2xl font-bold mb-4 flex items-center">
-            <div className="bg-blue-600 p-2 rounded-lg mr-3">
+            <div className="bg-green-600 p-2 rounded-lg mr-3">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
               </svg>
@@ -183,12 +184,12 @@ export default function AdminPage() {
           </h2>
           <div className="space-y-3">
             {users.length === 0 ? (
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-gray-400">
+              <div className="bg-slate-900 border border-slate-700 rounded-lg p-4 text-gray-400">
                 No users found. Click "Sync Existing Users" to load existing accounts.
               </div>
             ) : (
               users.map(user => (
-                <div key={user.id} className="bg-gray-800 border border-gray-700 p-4 rounded-lg flex justify-between items-center">
+                <div key={user.id} className="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 p-4 rounded-lg flex justify-between items-center">
                   <div>
                     <p className="font-medium text-white">{user.email}</p>
                     <div className="flex items-center mt-1">
@@ -206,7 +207,7 @@ export default function AdminPage() {
                     {!user.approved && (
                       <button
                         onClick={() => handleApproval(user.id, true)}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all shadow-md"
                       >
                         Approve
                       </button>
@@ -214,7 +215,7 @@ export default function AdminPage() {
                     {user.approved && (
                       <button
                         onClick={() => handleApproval(user.id, false)}
-                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-all shadow-md"
                       >
                         Revoke Access
                       </button>
@@ -222,7 +223,7 @@ export default function AdminPage() {
                     {user.approved && (
                       <button
                         onClick={() => handleRoleChange(user.id, 'admin')}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-all shadow-md"
                       >
                         Make Admin
                       </button>
