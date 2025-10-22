@@ -56,7 +56,6 @@ export default function Home() {
     }
 
     setProfile(profile)
-    setLoading(false)
   }
 
   useEffect(() => {
@@ -116,6 +115,12 @@ export default function Home() {
       if (showChats) fetchChats()
     }
   }, [profile, user, showChats])
+
+  useEffect(() => {
+    if (items.length > 0) {
+      setLoading(false)
+    }
+  }, [items])
 
   useEffect(() => {
     if (selectedChat && user) {
@@ -423,7 +428,7 @@ export default function Home() {
               </div>
             )
           })}
-          {items.filter(item => 
+          {!loading && items.filter(item => 
             item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.category.toLowerCase().includes(searchQuery.toLowerCase())
           ).length === 0 && (
