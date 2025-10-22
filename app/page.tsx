@@ -160,43 +160,80 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-white mb-4">Available Items</h2>
+        <div className="space-y-8">
+          {['Books', 'Electronics', 'Uniforms', 'Accessories', 'Furniture', 'Other'].map(category => {
+            const categoryItems = items.filter(item => 
+              item.category === category &&
+              (item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              item.category.toLowerCase().includes(searchQuery.toLowerCase()))
+            )
+            
+            if (categoryItems.length === 0) return null
+            
+            return (
+              <div key={category}>
+                <h2 className="text-2xl font-bold text-white mb-4">{category}</h2>
+                <div className="relative group">
+                  {categoryItems.length > 4 && (
+                    <button
+                      onClick={() => {
+                        const container = document.getElementById(`carousel-${category}`)
+                        if (container) container.scrollBy({ left: -300, behavior: 'smooth' })
+                      }}
+                      className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-slate-800/90 hover:bg-slate-700 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                  )}
+                  <div id={`carousel-${category}`} className="overflow-x-auto scrollbar-hide">
+                    <div className="flex gap-6 pb-4" style={{ width: 'max-content' }}>
+                      {categoryItems.map(item => (
+                        <div key={item.id} onClick={() => router.push(`/item/${item.id}`)} className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden hover:border-green-600 transition-all cursor-pointer" style={{ width: '280px', flexShrink: 0 }}>
+                          <div className="h-48 bg-slate-800 flex items-center justify-center">
+                            {item.images && item.images.length > 0 ? (
+                              <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <svg className="w-16 h-16 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            )}
+                          </div>
+                          <div className="p-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <h3 className="text-lg font-bold text-white">{item.name}</h3>
+                              <span className="text-green-400 font-bold">${item.price}</span>
+                            </div>
+                            <p className="text-sm text-gray-400">{item.seller_email?.split('@')[0] || 'Unknown'}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {categoryItems.length > 4 && (
+                    <button
+                      onClick={() => {
+                        const container = document.getElementById(`carousel-${category}`)
+                        if (container) container.scrollBy({ left: 300, behavior: 'smooth' })
+                      }}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-slate-800/90 hover:bg-slate-700 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
           {items.filter(item => 
             item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.category.toLowerCase().includes(searchQuery.toLowerCase())
-          ).length === 0 ? (
+          ).length === 0 && (
             <div className="bg-slate-900 border border-slate-700 rounded-xl p-8 text-center">
               <p className="text-gray-400">No items found. Be the first to list an item!</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {items.filter(item => 
-                item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                item.category.toLowerCase().includes(searchQuery.toLowerCase())
-              ).map(item => (
-                <div key={item.id} className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden hover:border-green-600 transition-all">
-                  <div className="h-48 bg-slate-800 flex items-center justify-center">
-                    {item.images && item.images.length > 0 ? (
-                      <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <svg className="w-16 h-16 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg font-bold text-white">{item.name}</h3>
-                      <span className="text-green-400 font-bold">${item.price}</span>
-                    </div>
-                    <p className="text-sm text-gray-400 mb-3">{item.category} • {item.seller_email?.split('@')[0] || 'Unknown'}</p>
-                    <button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg transition-all">
-                      Add to Cart
-                    </button>
-                  </div>
-                </div>
-              ))}
             </div>
           )}
         </div>
