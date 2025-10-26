@@ -13,6 +13,10 @@ export default function AuthForm() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [showResetPassword, setShowResetPassword] = useState(false)
+  const [resetToken, setResetToken] = useState('')
+  const [newPassword, setNewPassword] = useState('')
   const router = useRouter()
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -82,12 +86,131 @@ export default function AuthForm() {
     }
   }
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) {
+      toast.error('Please enter your email address')
+      return
+    }
+    setLoading(true)
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email)
+      if (error) throw error
+      toast.success('Reset code sent! Check your email.')
+      setShowForgotPassword(false)
+      setShowResetPassword(true)
+    } catch (error: any) {
+      toast.error(error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token: resetToken,
+        type: 'recovery'
+      })
+      if (error) throw error
+
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
+      })
+      if (updateError) throw updateError
+
+      toast.success('Password updated successfully!')
+      setShowResetPassword(false)
+      router.push('/')
+    } catch (error: any) {
+      toast.error(error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="w-full max-w-md mx-auto p-6 bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl border border-green-700/30 shadow-2xl shadow-green-900/20">
       <h2 className="text-2xl font-bold mb-6 text-center text-white">
-        {isSignUp ? 'Join Campus Trade' : 'Welcome Back'}
+        {showResetPassword ? 'Reset Password' : showForgotPassword ? 'Forgot Password' : isSignUp ? 'Join Campus Trade' : 'Welcome Back'}
       </h2>
       
+      {showResetPassword ? (
+        <form onSubmit={handleResetPassword} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Enter code from email"
+            value={resetToken}
+            onChange={(e) => setResetToken(e.target.value)}
+            className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none transition-all"
+            required
+          />
+          <input
+            type="password"
+            placeholder="New password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none transition-all"
+            required
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white p-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+          >
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Loading...
+              </div>
+            ) : (
+              'Reset Password'
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => { setShowResetPassword(false); setShowForgotPassword(false); }}
+            className="w-full text-gray-400 hover:text-white transition-colors"
+          >
+            Back to Sign In
+          </button>
+        </form>
+      ) : showForgotPassword ? (
+        <form onSubmit={handleForgotPassword} className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none transition-all"
+            required
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white p-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+          >
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Loading...
+              </div>
+            ) : (
+              'Send Reset Link'
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => { setShowForgotPassword(false); setEmail(''); }}
+            className="w-full text-gray-400 hover:text-white transition-colors"
+          >
+            Back to Sign In
+          </button>
+        </form>
+      ) : (
       <form onSubmit={handleAuth} className="space-y-4">
         {isSignUp && (
           <>
@@ -149,7 +272,17 @@ export default function AuthForm() {
             isSignUp ? 'Create Account' : 'Sign In to Campus Trade'
           )}
         </button>
+        {!isSignUp && (
+          <button
+            type="button"
+            onClick={() => setShowForgotPassword(true)}
+            className="text-sm text-green-400 hover:text-green-300 transition-colors"
+          >
+            Forgot password?
+          </button>
+        )}
       </form>
+      )}
 
       <div className="my-6 text-center">
         <div className="relative">
