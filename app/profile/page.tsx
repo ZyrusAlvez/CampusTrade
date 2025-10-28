@@ -177,7 +177,7 @@ export default function ProfilePage() {
               <p className="text-xs text-green-200">Student Marketplace</p>
             </div>
           </div>
-          <button onClick={() => router.push('/')} className="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2 rounded-lg transition-all">
+          <button onClick={() => router.push('/')} className="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2 rounded-lg transition-all cursor-pointer">
             Back to Home
           </button>
         </div>
@@ -223,10 +223,10 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div className="flex gap-2">
-                    <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded text-sm">
+                    <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded text-sm cursor-pointer">
                       Save
                     </button>
-                    <button type="button" onClick={() => { setEditingName(false); setFirstName(profile.first_name); setLastName(profile.last_name); }} className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-1 rounded text-sm">
+                    <button type="button" onClick={() => { setEditingName(false); setFirstName(profile.first_name); setLastName(profile.last_name); }} className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-1 rounded text-sm cursor-pointer">
                       Cancel
                     </button>
                   </div>
@@ -234,7 +234,7 @@ export default function ProfilePage() {
               ) : (
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="text-2xl font-bold text-white">{profile.first_name} {profile.last_name}</h3>
-                  <button onClick={() => setEditingName(true)} className="text-gray-400 hover:text-white">
+                  <button onClick={() => setEditingName(true)} className="text-gray-400 hover:text-white cursor-pointer">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
@@ -265,7 +265,7 @@ export default function ProfilePage() {
               className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
               required
             />
-            <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-all">
+            <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-all cursor-pointer">
               Update Password
             </button>
           </form>
@@ -273,14 +273,14 @@ export default function ProfilePage() {
 
         <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 mt-6">
           <h3 className="text-xl font-bold text-white mb-4">Account Actions</h3>
-          <button onClick={handleSignOut} className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-all">
+          <button onClick={handleSignOut} className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-all cursor-pointer">
             Sign Out
           </button>
         </div>
 
         {showImageModal && (
           <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4" onClick={() => setShowImageModal(false)}>
-            <button onClick={() => setShowImageModal(false)} className="absolute top-4 right-4 text-white hover:text-gray-300">
+            <button onClick={() => setShowImageModal(false)} className="absolute top-4 right-4 text-white hover:text-gray-300 cursor-pointer">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>

@@ -139,7 +139,7 @@ export default function ItemPage() {
               <p className="text-xs text-green-200">Student Marketplace</p>
             </div>
           </div>
-          <button onClick={() => router.push('/')} className="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2 rounded-lg transition-all">
+          <button onClick={() => router.push('/')} className="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2 rounded-lg transition-all cursor-pointer">
             Back to Home
           </button>
         </div>
@@ -245,7 +245,7 @@ export default function ItemPage() {
                     if (newChat) setChat(newChat)
                   }
                   setShowChat(true)
-                }} className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-all font-medium">
+                }} className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-all font-medium cursor-pointer">
                   Message Seller
                 </button>
               )}
@@ -256,7 +256,7 @@ export default function ItemPage() {
         {/* Image Lightbox */}
         {showLightbox && item.images && (
           <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4" onClick={() => setShowLightbox(false)}>
-            <button onClick={() => setShowLightbox(false)} className="absolute top-4 right-4 text-white hover:text-gray-300 z-10">
+            <button onClick={() => setShowLightbox(false)} className="absolute top-4 right-4 text-white hover:text-gray-300 z-10 cursor-pointer">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -266,7 +266,7 @@ export default function ItemPage() {
               <>
                 <button 
                   onClick={(e) => { e.stopPropagation(); setSelectedImage((selectedImage - 1 + item.images.length) % item.images.length) }} 
-                  className="absolute left-4 text-white hover:text-gray-300 bg-black bg-opacity-50 rounded-full p-2"
+                  className="absolute left-4 text-white hover:text-gray-300 bg-black bg-opacity-50 rounded-full p-2 cursor-pointer"
                 >
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -274,7 +274,7 @@ export default function ItemPage() {
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); setSelectedImage((selectedImage + 1) % item.images.length) }} 
-                  className="absolute right-4 text-white hover:text-gray-300 bg-black bg-opacity-50 rounded-full p-2"
+                  className="absolute right-4 text-white hover:text-gray-300 bg-black bg-opacity-50 rounded-full p-2 cursor-pointer"
                 >
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -291,7 +291,7 @@ export default function ItemPage() {
                     <button
                       key={index}
                       onClick={() => setSelectedImage(index)}
-                      className={`w-3 h-3 rounded-full transition-all ${
+                      className={`w-3 h-3 rounded-full transition-all cursor-pointer ${
                         selectedImage === index ? 'bg-green-500' : 'bg-gray-500'
                       }`}
                     />
@@ -337,7 +337,7 @@ export default function ItemPage() {
                     })()}
                   </p>
                 </div>
-                <button onClick={() => setShowChat(false)} className="text-white hover:text-gray-300">
+                <button onClick={() => setShowChat(false)} className="text-white hover:text-gray-300 cursor-pointer">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -400,7 +400,7 @@ export default function ItemPage() {
                     placeholder="Type a message..."
                     className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm placeholder-gray-400 focus:border-green-500 focus:outline-none"
                   />
-                  <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
+                  <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm cursor-pointer">
                     Send
                   </button>
                 </div>

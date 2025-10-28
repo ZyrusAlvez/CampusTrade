@@ -144,13 +144,13 @@ export default function SellPage() {
               <p className="text-xs text-green-200">Student Marketplace</p>
             </div>
           </div>
-          <button onClick={() => router.push('/')} className="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2 rounded-lg transition-all">
+          <button onClick={() => router.push('/')} className="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2 rounded-lg transition-all cursor-pointer">
             Back to Home
           </button>
         </div>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold text-white">My Listings</h2>
-          <button onClick={() => setShowForm(!showForm)} className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-all flex items-center gap-2">
+          <button onClick={() => setShowForm(!showForm)} className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-all flex items-center gap-2 cursor-pointer">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
@@ -230,7 +230,7 @@ export default function SellPage() {
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                     >
                       ×
                     </button>
@@ -243,7 +243,7 @@ export default function SellPage() {
           <button
             type="submit"
             disabled={loading || uploading}
-            className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium disabled:opacity-50 transition-all"
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium disabled:opacity-50 transition-all cursor-pointer"
           >
             {loading ? 'Listing...' : uploading ? 'Uploading images...' : 'List Item'}
           </button>
@@ -273,7 +273,7 @@ export default function SellPage() {
                     <span className="text-green-400 font-bold">₱{item.price}</span>
                   </div>
                   <p className="text-sm text-gray-400 mb-3">{item.category}</p>
-                  <button onClick={() => router.push('/messages')} className="w-full bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-lg transition-all text-sm">
+                  <button onClick={() => router.push('/messages')} className="w-full bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-lg transition-all text-sm cursor-pointer">
                     View Messages
                   </button>
                 </div>

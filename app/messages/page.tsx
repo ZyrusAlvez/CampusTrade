@@ -76,7 +76,7 @@ export default function MessagesPage() {
               <p className="text-xs text-green-200">Student Marketplace</p>
             </div>
           </div>
-          <button onClick={() => router.push('/')} className="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2 rounded-lg transition-all">
+          <button onClick={() => router.push('/')} className="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2 rounded-lg transition-all cursor-pointer">
             Back to Home
           </button>
         </div>

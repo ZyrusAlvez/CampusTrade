@@ -96,7 +96,7 @@ export default function UserProfilePage() {
               <p className="text-xs text-green-200">Student Marketplace</p>
             </div>
           </div>
-          <button onClick={() => router.back()} className="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2 rounded-lg transition-all">
+          <button onClick={() => router.back()} className="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2 rounded-lg transition-all cursor-pointer">
             Back
           </button>
         </div>
@@ -130,7 +130,7 @@ export default function UserProfilePage() {
 
         {showImageModal && (
           <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4" onClick={() => setShowImageModal(false)}>
-            <button onClick={() => setShowImageModal(false)} className="absolute top-4 right-4 text-white hover:text-gray-300">
+            <button onClick={() => setShowImageModal(false)} className="absolute top-4 right-4 text-white hover:text-gray-300 cursor-pointer">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>

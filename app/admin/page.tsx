@@ -112,7 +112,7 @@ export default function AdminPage() {
           </div>
           <button
             onClick={handleSignOut}
-            className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg transition-all shadow-md hover:shadow-lg"
+            className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg transition-all shadow-md hover:shadow-lg cursor-pointer"
           >
             Sign Out
           </button>
@@ -123,7 +123,7 @@ export default function AdminPage() {
         <div className="mb-6 flex flex-wrap gap-3">
           <button
             onClick={syncUsers}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all shadow-md"
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all shadow-md cursor-pointer"
           >
             Sync Existing Users
           </button>
@@ -134,7 +134,7 @@ export default function AdminPage() {
                 alert('Fixed unconfirmed emails')
               }
             }}
-            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-all shadow-md"
+            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-all shadow-md cursor-pointer"
           >
             Fix Email Confirmations
           </button>
@@ -163,7 +163,7 @@ export default function AdminPage() {
                   </div>
                   <button
                     onClick={() => handleRoleChange(admin.id, 'user')}
-                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-all shadow-md"
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-all shadow-md cursor-pointer"
                   >
                     Revoke Admin
                   </button>
@@ -207,7 +207,7 @@ export default function AdminPage() {
                     {!user.approved && (
                       <button
                         onClick={() => handleApproval(user.id, true)}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all shadow-md"
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all shadow-md cursor-pointer"
                       >
                         Approve
                       </button>
@@ -215,7 +215,7 @@ export default function AdminPage() {
                     {user.approved && (
                       <button
                         onClick={() => handleApproval(user.id, false)}
-                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-all shadow-md"
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-all shadow-md cursor-pointer"
                       >
                         Revoke Access
                       </button>
@@ -223,7 +223,7 @@ export default function AdminPage() {
                     {user.approved && (
                       <button
                         onClick={() => handleRoleChange(user.id, 'admin')}
-                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-all shadow-md"
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-all shadow-md cursor-pointer"
                       >
                         Make Admin
                       </button>

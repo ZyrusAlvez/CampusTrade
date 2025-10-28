@@ -157,7 +157,7 @@ export default function AuthForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white p-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white p-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl cursor-pointer"
           >
             {loading ? (
               <div className="flex items-center justify-center">
@@ -171,7 +171,7 @@ export default function AuthForm() {
           <button
             type="button"
             onClick={() => { setShowResetPassword(false); setShowForgotPassword(false); }}
-            className="w-full text-gray-400 hover:text-white transition-colors"
+            className="w-full text-gray-400 hover:text-white transition-colors cursor-pointer"
           >
             Back to Sign In
           </button>
@@ -189,7 +189,7 @@ export default function AuthForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white p-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white p-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl cursor-pointer"
           >
             {loading ? (
               <div className="flex items-center justify-center">
@@ -203,7 +203,7 @@ export default function AuthForm() {
           <button
             type="button"
             onClick={() => { setShowForgotPassword(false); setEmail(''); }}
-            className="w-full text-gray-400 hover:text-white transition-colors"
+            className="w-full text-gray-400 hover:text-white transition-colors cursor-pointer"
           >
             Back to Sign In
           </button>
@@ -259,7 +259,7 @@ export default function AuthForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white p-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white p-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl cursor-pointer"
         >
           {loading ? (
             <div className="flex items-center justify-center">
@@ -274,7 +274,7 @@ export default function AuthForm() {
           <button
             type="button"
             onClick={() => setShowForgotPassword(true)}
-            className="text-sm text-green-400 hover:text-green-300 transition-colors"
+            className="text-sm text-green-400 hover:text-green-300 transition-colors cursor-pointer"
           >
             Forgot password?
           </button>
@@ -296,7 +296,7 @@ export default function AuthForm() {
       <button
         onClick={handleGoogleAuth}
         disabled={loading}
-        className="w-full bg-white hover:bg-gray-100 text-gray-900 p-3 rounded-lg font-medium border border-gray-300 disabled:opacity-50 transition-all shadow-md hover:shadow-lg flex items-center justify-center"
+        className="w-full bg-white hover:bg-gray-100 text-gray-900 p-3 rounded-lg font-medium border border-gray-300 disabled:opacity-50 transition-all shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer"
       >
         <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -311,7 +311,7 @@ export default function AuthForm() {
         {isSignUp ? 'Already have an account?' : "Don't have an account?"}
         <button
           onClick={() => setIsSignUp(!isSignUp)}
-          className="ml-2 text-green-400 hover:text-green-300 font-medium transition-colors"
+          className="ml-2 text-green-400 hover:text-green-300 font-medium transition-colors cursor-pointer"
         >
           {isSignUp ? 'Sign In' : 'Sign Up'}
         </button>
