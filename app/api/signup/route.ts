@@ -15,11 +15,6 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) throw error
-
-    // Profile will be created automatically by the database trigger
-
-    // Wait a moment for the trigger to complete
-    await new Promise(resolve => setTimeout(resolve, 100))
     
     return NextResponse.json({ success: true })
   } catch (error: any) {

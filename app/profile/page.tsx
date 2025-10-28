@@ -8,11 +8,13 @@ import { toast } from 'sonner'
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
-  const [stats, setStats] = useState({ listed: 0, sold: 0, bought: 0 })
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [uploading, setUploading] = useState(false)
   const [showImageModal, setShowImageModal] = useState(false)
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [editingName, setEditingName] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -27,7 +29,6 @@ export default function ProfilePage() {
     }
     setUser(user)
     fetchProfile(user.id)
-    fetchStats(user.id)
   }
 
   const fetchProfile = async (userId: string) => {
@@ -36,30 +37,29 @@ export default function ProfilePage() {
       .select('*')
       .eq('id', userId)
       .single()
-    if (data) setProfile(data)
+    if (data) {
+      setProfile(data)
+      setFirstName(data.first_name)
+      setLastName(data.last_name)
+    }
   }
 
-  const fetchStats = async (userId: string) => {
-    const { data: items } = await supabase
-      .from('items')
-      .select('id')
-      .eq('seller_id', userId)
+  const handleNameUpdate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user) return
 
-    const { data: soldOrders } = await supabase
-      .from('orders')
-      .select('item_id')
-      .eq('seller_id', userId)
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ first_name: firstName, last_name: lastName })
+      .eq('id', user.id)
 
-    const { data: boughtOrders } = await supabase
-      .from('orders')
-      .select('id')
-      .eq('buyer_id', userId)
-
-    setStats({
-      listed: items?.length || 0,
-      sold: soldOrders?.length || 0,
-      bought: boughtOrders?.length || 0
-    })
+    if (error) {
+      toast.error(error.message)
+    } else {
+      toast.success('Name updated successfully')
+      await fetchProfile(user.id)
+      setEditingName(false)
+    }
   }
 
   const handlePasswordChange = async (e: React.FormEvent) => {
@@ -150,12 +150,7 @@ export default function ProfilePage() {
             <div className="w-32 h-32 bg-slate-800 rounded-full"></div>
             <div className="flex-1">
               <div className="h-8 w-48 bg-slate-800 rounded mb-2"></div>
-              <div className="h-5 w-64 bg-slate-800 rounded mb-4"></div>
-              <div className="grid grid-cols-3 gap-4">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="bg-slate-800 p-4 rounded-lg h-24"></div>
-                ))}
-              </div>
+              <div className="h-5 w-64 bg-slate-800 rounded"></div>
             </div>
           </div>
         </div>
@@ -207,22 +202,46 @@ export default function ProfilePage() {
               </label>
             </div>
             <div className="flex-1">
-              <h3 className="text-2xl font-bold text-white">{profile.first_name} {profile.last_name}</h3>
-              <p className="text-gray-400 mb-4">{profile.email}</p>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-slate-800 p-4 rounded-lg text-center">
-                  <div className="text-3xl font-bold text-green-400">{stats.listed}</div>
-                  <div className="text-sm text-gray-400">Listed Items</div>
+              {editingName ? (
+                <form onSubmit={handleNameUpdate} className="mb-4">
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={firstName || ''}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="p-2 bg-slate-800 border border-slate-600 rounded text-white"
+                      placeholder="First Name"
+                      required
+                    />
+                    <input
+                      type="text"
+                      value={lastName || ''}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="p-2 bg-slate-800 border border-slate-600 rounded text-white"
+                      placeholder="Last Name"
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded text-sm">
+                      Save
+                    </button>
+                    <button type="button" onClick={() => { setEditingName(false); setFirstName(profile.first_name); setLastName(profile.last_name); }} className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-1 rounded text-sm">
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-2xl font-bold text-white">{profile.first_name} {profile.last_name}</h3>
+                  <button onClick={() => setEditingName(true)} className="text-gray-400 hover:text-white">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
                 </div>
-                <div className="bg-slate-800 p-4 rounded-lg text-center">
-                  <div className="text-3xl font-bold text-blue-400">{stats.sold}</div>
-                  <div className="text-sm text-gray-400">Sold Items</div>
-                </div>
-                <div className="bg-slate-800 p-4 rounded-lg text-center">
-                  <div className="text-3xl font-bold text-purple-400">{stats.bought}</div>
-                  <div className="text-sm text-gray-400">Bought Items</div>
-                </div>
-              </div>
+              )}
+              <p className="text-gray-400">{profile.email}</p>
             </div>
           </div>
         </div>

@@ -56,6 +56,7 @@ export default function Home() {
     }
 
     setProfile(profile)
+    setLoading(false)
   }
 
   useEffect(() => {
@@ -115,12 +116,6 @@ export default function Home() {
       if (showChats) fetchChats()
     }
   }, [profile, user, showChats])
-
-  useEffect(() => {
-    if (items.length > 0) {
-      setLoading(false)
-    }
-  }, [items])
 
   useEffect(() => {
     if (selectedChat && user) {

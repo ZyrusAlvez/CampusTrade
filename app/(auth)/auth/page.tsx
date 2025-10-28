@@ -9,16 +9,14 @@ export default function SignIn() {
   const router = useRouter()
 
   useEffect(() => {
-    // Handle OAuth callback tokens in URL fragment
-    const handleAuthCallback = async () => {
-      const { data, error } = await supabase.auth.getSession()
-      if (data.session) {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
         router.push('/')
       }
     }
-
-    handleAuthCallback()
-  }, [])
+    checkSession()
+  }, [router])
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">

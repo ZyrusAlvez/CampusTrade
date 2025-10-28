@@ -48,17 +48,15 @@ export default function AuthForm() {
         
         if (signInError) throw signInError
         
-        // Immediate redirect without waiting
-        setTimeout(() => router.push('/'), 0)
+        router.push('/')
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email,
           password
         })
         if (error) throw error
         
-        // Immediate redirect without waiting
-        setTimeout(() => router.push('/'), 0)
+        router.push('/')
       }
     } catch (error: any) {
       toast.error(error.message)
@@ -73,7 +71,7 @@ export default function AuthForm() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/loading`,
           queryParams: {
             prompt: 'select_account'
           }
