@@ -16,6 +16,7 @@ export default function SellPage() {
   const [loading, setLoading] = useState(false)
   const [myItems, setMyItems] = useState<any[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -273,14 +274,36 @@ export default function SellPage() {
                     <span className="text-green-400 font-bold">₱{item.price}</span>
                   </div>
                   <p className="text-sm text-gray-400 mb-3">{item.category}</p>
-                  <button onClick={() => router.push('/messages')} className="w-full bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-lg transition-all text-sm cursor-pointer">
-                    View Messages
+                  <button onClick={() => setDeleteConfirm(item.id)} className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg transition-all text-sm cursor-pointer">
+                    Delete Listing
                   </button>
                 </div>
               </div>
             ))
           )}
         </div>
+
+        {deleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4" onClick={() => setDeleteConfirm(null)}>
+            <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-xl font-bold text-white mb-2">Delete Listing?</h3>
+              <p className="text-gray-400 mb-6">This action cannot be undone.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setDeleteConfirm(null)} className="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-lg transition-all cursor-pointer">
+                  Cancel
+                </button>
+                <button onClick={async () => {
+                  await supabase.from('items').delete().eq('id', deleteConfirm)
+                  setDeleteConfirm(null)
+                  fetchMyItems()
+                  toast.success('Listing deleted')
+                }} className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg transition-all cursor-pointer">
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
