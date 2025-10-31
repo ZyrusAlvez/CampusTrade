@@ -9,6 +9,7 @@ export default function Home() {
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<any[]>([])
+  const [itemsLoading, setItemsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [chats, setChats] = useState<any[]>([])
   const [selectedChat, setSelectedChat] = useState<any>(null)
@@ -61,6 +62,7 @@ export default function Home() {
 
   useEffect(() => {
     const fetchItems = async () => {
+      setItemsLoading(true)
       const { data: itemsData } = await supabase
         .from('items')
         .select('*')
@@ -79,6 +81,7 @@ export default function Home() {
         )
         setItems(itemsWithSeller)
       }
+      setItemsLoading(false)
     }
 
     const fetchChats = async () => {
@@ -329,7 +332,25 @@ export default function Home() {
         </div>
 
         <div className="space-y-8">
-          {['All', 'Books', 'Electronics', 'Uniforms', 'Accessories', 'Furniture', 'Other'].map(category => {
+          {itemsLoading ? (
+            ['All', 'Books', 'Electronics'].map(category => (
+              <div key={category}>
+                <div className="h-8 w-32 bg-slate-800 rounded mb-4 animate-pulse"></div>
+                <div className="flex gap-6">
+                  {[1, 2, 3, 4].map(j => (
+                    <div key={j} className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden animate-pulse" style={{ width: '280px' }}>
+                      <div className="h-48 bg-slate-800"></div>
+                      <div className="p-4">
+                        <div className="h-5 bg-slate-800 rounded mb-2"></div>
+                        <div className="h-4 w-20 bg-slate-800 rounded"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          ) : (
+            ['All', 'Books', 'Electronics', 'Uniforms', 'Accessories', 'Furniture', 'Other'].map(category => {
             const categoryItems = items.filter(item => 
               (category === 'All' || item.category === category) &&
               (item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -422,8 +443,9 @@ export default function Home() {
                 </div>
               </div>
             )
-          })}
-          {!loading && items.filter(item => 
+          })
+          )}
+          {!itemsLoading && items.filter(item => 
             item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.category.toLowerCase().includes(searchQuery.toLowerCase())
           ).length === 0 && (
