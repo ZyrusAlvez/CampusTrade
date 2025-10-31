@@ -84,6 +84,12 @@ export default function Home() {
       setItemsLoading(false)
     }
 
+    if (profile) {
+      fetchItems()
+    }
+  }, [profile])
+
+  useEffect(() => {
     const fetchChats = async () => {
       if (!user) return
       const { data } = await supabase
@@ -113,12 +119,7 @@ export default function Home() {
       const interval = setInterval(fetchChats, 30000)
       return () => clearInterval(interval)
     }
-
-    if (profile) {
-      fetchItems()
-      if (showChats) fetchChats()
-    }
-  }, [profile, user, showChats])
+  }, [user, showChats])
 
   useEffect(() => {
     if (selectedChat && user) {
