@@ -9,7 +9,10 @@ type Props = {
 export default function RootLayout({ children }: Props) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head />
+      <head>
+        <title>Campus Trade</title>
+        <link rel="icon" href="/logo.png" type="image/png" />
+      </head>
       
       <body className="flex flex-col font-roboto bg-gray-900" suppressHydrationWarning>
           {children}
