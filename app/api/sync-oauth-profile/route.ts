@@ -22,8 +22,14 @@ export async function POST(request: NextRequest) {
       first_name: firstName,
       last_name: lastName,
       profile_picture: profilePic,
-      approved: true
+      approved: false
     })
+  } else {
+    await supabaseAdmin.from('user_profiles').update({
+      first_name: firstName,
+      last_name: lastName,
+      profile_picture: profilePic
+    }).eq('id', userId)
   }
 
   return NextResponse.json({ success: true })

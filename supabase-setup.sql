@@ -16,12 +16,13 @@ CREATE TABLE user_profiles (
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.user_profiles (id, email, first_name, last_name, approved, role)
+  INSERT INTO public.user_profiles (id, email, first_name, last_name, profile_picture, approved, role)
   VALUES (
     NEW.id, 
     NEW.email, 
-    NEW.raw_user_meta_data->>'first_name',
-    NEW.raw_user_meta_data->>'last_name',
+    COALESCE(NEW.raw_user_meta_data->>'first_name', NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
+    COALESCE(NEW.raw_user_meta_data->>'last_name', ''),
+    NEW.raw_user_meta_data->>'avatar_url',
     FALSE, 
     'user'
   );
