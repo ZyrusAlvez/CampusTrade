@@ -16,23 +16,31 @@ export default function AuthLoading() {
         const metadata = user.user_metadata
         
         if (metadata.iss || metadata.provider_id) {
-          const fullName = metadata.full_name || metadata.name || ''
-          const nameParts = fullName.split(' ')
-          const firstName = nameParts[0] || 'User'
-          const lastName = nameParts.slice(1).join(' ') || ''
-          const profilePic = metadata.avatar_url || metadata.picture || ''
+          const { data: existing } = await supabase
+            .from('user_profiles')
+            .select('id')
+            .eq('id', user.id)
+            .single()
           
-          fetch('/api/sync-oauth-profile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              userId: user.id,
-              email: user.email,
-              firstName,
-              lastName,
-              profilePic
+          if (!existing) {
+            const fullName = metadata.full_name || metadata.name || ''
+            const nameParts = fullName.split(' ')
+            const firstName = nameParts[0] || 'User'
+            const lastName = nameParts.slice(1).join(' ') || ''
+            const profilePic = metadata.avatar_url || metadata.picture || ''
+            
+            await fetch('/api/sync-oauth-profile', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId: user.id,
+                email: user.email,
+                firstName,
+                lastName,
+                profilePic
+              })
             })
-          })
+          }
         }
         
         router.push('/')
